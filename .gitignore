@@ -1,0 +1,53 @@
+# =========================
+# Python / Django
+# =========================
+
+# Environnement virtuel
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+# Fichiers d'environnement
+.env
+.env.*
+!.env.example
+
+
+# =========================
+# React / Node / Vite
+# =========================
+
+# Dépendances
+frontend/node_modules/
+
+# Build
+frontend/dist/
+frontend/build/
+
+# Fichiers d'environnement Vite
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+
+# =========================
+# IDE / éditeurs
+# =========================
+
+.vscode/
+.idea/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
