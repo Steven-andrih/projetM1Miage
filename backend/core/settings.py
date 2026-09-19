@@ -41,7 +41,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 
+    'users',
+
+
 ]
+
+AUTH_USER_MODEL = 'users.Utilisateur'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', 
@@ -133,4 +138,13 @@ MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
