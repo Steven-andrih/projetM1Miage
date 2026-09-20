@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Utilisateur
+from .models import Client, Prestataire
+
 
 
 class UtilisateurAdmin(UserAdmin):
@@ -15,3 +17,5 @@ class UtilisateurAdmin(UserAdmin):
 
 
 admin.site.register(Utilisateur, UtilisateurAdmin)
+admin.site.register(Client)
+admin.site.register(Prestataire)
