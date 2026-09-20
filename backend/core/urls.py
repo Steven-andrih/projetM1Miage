@@ -9,6 +9,8 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/', include('services.urls')),
     path('api/', include('demandes.urls')),
+    path('api/', include('propositions.urls')),
+
 
 
 ]
