@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/', include('services.urls')),
     path('api/', include('demandes.urls')),
     path('api/', include('propositions.urls')),
+    path('api/', include('missions.urls')),
 
 
 

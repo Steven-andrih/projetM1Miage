@@ -9,4 +9,4 @@ class PropositionSerializer(serializers.ModelSerializer):
             'id', 'demande', 'prestataire', 'message', 'tarif_propose',
             'statut', 'date_proposition', 'date_reponse',
         )
-        read_only_fields = ('prestataire', 'date_proposition', 'date_reponse')
+        read_only_fields = ('prestataire', 'date_proposition', 'date_reponse')  
