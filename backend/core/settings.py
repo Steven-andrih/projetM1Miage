@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'demandes',
     'propositions',
     'missions',
+    'avis',
 
 ]
 

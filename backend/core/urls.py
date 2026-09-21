@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/', include('demandes.urls')),
     path('api/', include('propositions.urls')),
     path('api/', include('missions.urls')),
+    path('api/', include('avis.urls')),
 
 
 
