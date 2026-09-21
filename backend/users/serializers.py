@@ -28,3 +28,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Utilisateur.objects.create_user(**validated_data)
 
+class PrestataireCarteSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='utilisateur.username', read_only=True)
+
+    class Meta:
+        model = Prestataire
+        fields = (
+            'id', 'username', 'ville', 'latitude', 'longitude',
+            'annee_experience', 'disponible',
+        )
