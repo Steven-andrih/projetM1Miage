@@ -1,11 +1,10 @@
-from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Demande
-from .serializers import DemandeSerializer
+from rest_framework import viewsets, permissions
 from recommandations.logic import calculer_recommandations
 from recommandations.serializers import RecommandationSerializer
-
+from demandes.models import Demande
+from demandes.serializers import DemandeSerializer
 
 class DemandeViewSet(viewsets.ModelViewSet):
     queryset = Demande.objects.all()
