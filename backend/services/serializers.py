@@ -1,6 +1,13 @@
 from rest_framework import serializers
 from .models import Categorie, Service
+from .models import PrestataireService
 
+
+class PrestataireServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrestataireService
+        fields = ('id', 'prestataire', 'service', 'tarif_min', 'tarif_max', 'actif')
+        read_only_fields = ('prestataire',)
 
 class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
