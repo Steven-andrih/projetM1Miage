@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'avis',
     'recommandations',
     'statistiques',
+    'ia',
 
 ]
 

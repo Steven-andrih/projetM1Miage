@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/', include('missions.urls')),
     path('api/', include('avis.urls')),
     path('api/', include('statistiques.urls')),
+    path('api/', include('ia.urls')),
 
 
 
