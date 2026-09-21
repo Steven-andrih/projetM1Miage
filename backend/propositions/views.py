@@ -6,12 +6,23 @@ from demandes.models import Demande
 from missions.models import Mission
 from .models import Proposition
 from .serializers import PropositionSerializer
+from .permissions import PropositionPermission
+from users.models import Utilisateur
 
 
 class PropositionViewSet(viewsets.ModelViewSet):
-    queryset = Proposition.objects.all()
     serializer_class = PropositionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [PropositionPermission]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == Utilisateur.Role.ADMIN:
+            return Proposition.objects.all()
+        if user.role == Utilisateur.Role.PRESTATAIRE:
+            return Proposition.objects.filter(prestataire__utilisateur=user)
+        if user.role == Utilisateur.Role.CLIENT:
+            return Proposition.objects.filter(demande__client__utilisateur=user)
+        return Proposition.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(prestataire=self.request.user.prestataire_profile)
