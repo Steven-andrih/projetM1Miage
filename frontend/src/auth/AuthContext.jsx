@@ -11,12 +11,6 @@ export const ROLES = {
 
 export const AuthContext = createContext(null);
 
-/**
- * L'endpoint /api/token/ ne renvoie pas le rôle de l'utilisateur.
- * On tente donc de le déduire :
- * 1) depuis le payload du JWT s'il contient un claim "role" ;
- * 2) sinon, par élimination via les endpoints de profil dédiés.
- */
 async function resolveRole(claimRole) {
   if (claimRole) return claimRole;
 
@@ -35,6 +29,14 @@ async function resolveRole(claimRole) {
   }
 
   return ROLES.ADMIN;
+}
+
+function buildUser(payload, role, fallbackUsername) {
+  return {
+    username: payload?.username ?? fallbackUsername,
+    userId: payload?.user_id ?? null, // claim par défaut de djangorestframework-simplejwt
+    role,
+  };
 }
 
 export function AuthProvider({ children }) {
@@ -60,7 +62,7 @@ export function AuthProvider({ children }) {
     const payload = decodeJwt(access);
     resolveRole(payload?.role)
       .then((role) => {
-        const rebuiltUser = { username: payload?.username, role };
+        const rebuiltUser = buildUser(payload, role);
         localStorage.setItem('user', JSON.stringify(rebuiltUser));
         setUser(rebuiltUser);
       })
@@ -75,7 +77,7 @@ export function AuthProvider({ children }) {
 
     const payload = decodeJwt(access);
     const role = await resolveRole(payload?.role);
-    const nextUser = { username: payload?.username ?? username, role };
+    const nextUser = buildUser(payload, role, username);
 
     localStorage.setItem('user', JSON.stringify(nextUser));
     setUser(nextUser);

@@ -11,6 +11,7 @@ import { useAuth } from '../auth/useAuth';
 import { ROLES } from '../auth/AuthContext';
 import ClientProfileContainer from '../features/profil/ClientProfileContainer';
 import PrestataireProfileContainer from '../features/profil/PrestataireProfileContainer';
+import MesServicesContainer from '../features/services/MesServicesContainer';
 
 function HomeRedirect() {
   const { role, loading } = useAuth();
@@ -88,7 +89,7 @@ export default function AppRouter() {
               />
               <Route
                 path="/prestataire/services"
-                element={<PlaceholderPage title="Mes services" />}
+                element={<MesServicesContainer />}
               />
               <Route
                 path="/prestataire/demandes"
