@@ -9,6 +9,8 @@ import PlaceholderPage from '../components/PlaceholderPage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../auth/useAuth';
 import { ROLES } from '../auth/AuthContext';
+import ClientProfileContainer from '../features/profil/ClientProfileContainer';
+import PrestataireProfileContainer from '../features/profil/PrestataireProfileContainer';
 
 function HomeRedirect() {
   const { role, loading } = useAuth();
@@ -46,7 +48,7 @@ export default function AppRouter() {
               />
               <Route
                 path="/client/profil"
-                element={<PlaceholderPage title="Mon profil" />}
+                element={<ClientProfileContainer />}
               />
               <Route
                 path="/client/demandes"
@@ -82,7 +84,7 @@ export default function AppRouter() {
               />
               <Route
                 path="/prestataire/profil"
-                element={<PlaceholderPage title="Mon profil" />}
+                element={<PrestataireProfileContainer />}
               />
               <Route
                 path="/prestataire/services"

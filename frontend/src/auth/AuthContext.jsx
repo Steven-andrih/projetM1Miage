@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useState } from 'react';
 import * as authApi from '../api/auth.api';
+import * as usersApi from '../api/users.api';
 import { decodeJwt } from '../utils/jwt';
 
 export const ROLES = {
@@ -13,24 +14,21 @@ export const AuthContext = createContext(null);
 /**
  * L'endpoint /api/token/ ne renvoie pas le rôle de l'utilisateur.
  * On tente donc de le déduire :
- * 1) depuis le payload du JWT s'il contient un claim "role" (à confirmer
- *    côté backend : dépend d'une éventuelle personnalisation du serializer
- *    SimpleJWT) ;
+ * 1) depuis le payload du JWT s'il contient un claim "role" ;
  * 2) sinon, par élimination via les endpoints de profil dédiés.
- * À vérifier / fiabiliser une fois le backend confirmé sur ce point.
  */
 async function resolveRole(claimRole) {
   if (claimRole) return claimRole;
 
   try {
-    await authApi.getClientProfile();
+    await usersApi.getClientProfile();
     return ROLES.CLIENT;
   } catch {
     // pas un client
   }
 
   try {
-    await authApi.getPrestataireProfile();
+    await usersApi.getPrestataireProfile();
     return ROLES.PRESTATAIRE;
   } catch {
     // pas un prestataire
@@ -67,7 +65,6 @@ export function AuthProvider({ children }) {
         setUser(rebuiltUser);
       })
       .finally(() => setLoading(false));
-    // volontairement exécuté une seule fois au montage
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
