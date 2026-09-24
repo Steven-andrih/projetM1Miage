@@ -12,6 +12,9 @@ import { ROLES } from '../auth/AuthContext';
 import ClientProfileContainer from '../features/profil/ClientProfileContainer';
 import PrestataireProfileContainer from '../features/profil/PrestataireProfileContainer';
 import MesServicesContainer from '../features/services/MesServicesContainer';
+import DemandeListContainer from '../features/demandes/DemandeListContainer';
+import DemandeCreateContainer from '../features/demandes/DemandeCreateContainer';
+import DemandeDetailContainer from '../features/demandes/DemandeDetailContainer';
 
 function HomeRedirect() {
   const { role, loading } = useAuth();
@@ -53,15 +56,15 @@ export default function AppRouter() {
               />
               <Route
                 path="/client/demandes"
-                element={<PlaceholderPage title="Mes demandes" />}
+                element={<DemandeListContainer />}
               />
               <Route
                 path="/client/demandes/nouvelle"
-                element={<PlaceholderPage title="Nouvelle demande" />}
+                element={<DemandeCreateContainer />}
               />
               <Route
                 path="/client/demandes/:id"
-                element={<PlaceholderPage title="Détail de la demande" />}
+                element={<DemandeDetailContainer />}
               />
               <Route
                 path="/client/missions"

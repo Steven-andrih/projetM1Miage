@@ -3,19 +3,18 @@ import {
   Button,
   Chip,
   FormControlLabel,
-  Grid,
   Stack,
   Switch,
   TextField,
   Typography,
-} from '@mui/material';
-import GeolocationButton from '../../components/GeolocationButton';
+} from '@mui/material'
+import GeolocationButton from '../../components/GeolocationButton'
 
 const STATUT_COLORS = {
   VALIDE: 'success',
   EN_ATTENTE: 'warning',
   REFUSE: 'error',
-};
+}
 
 export default function PrestataireProfileView({
   form,
@@ -51,38 +50,28 @@ export default function PrestataireProfileView({
           minRows={3}
           fullWidth
         />
-        <TextField
-          label="Adresse"
-          name="adresse"
-          value={form.adresse}
-          onChange={onChange}
-          fullWidth
-        />
+        <TextField label="Adresse" name="adresse" value={form.adresse} onChange={onChange} fullWidth />
 
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <TextField
-              label="Latitude"
-              name="latitude"
-              type="number"
-              value={form.latitude}
-              onChange={onChange}
-              fullWidth
-              inputProps={{ step: 'any' }}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              label="Longitude"
-              name="longitude"
-              type="number"
-              value={form.longitude}
-              onChange={onChange}
-              fullWidth
-              inputProps={{ step: 'any' }}
-            />
-          </Grid>
-        </Grid>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <TextField
+            label="Latitude"
+            name="latitude"
+            type="number"
+            value={form.latitude}
+            onChange={onChange}
+            sx={{ flex: '1 1 160px' }}
+            inputProps={{ step: 'any' }}
+          />
+          <TextField
+            label="Longitude"
+            name="longitude"
+            type="number"
+            value={form.longitude}
+            onChange={onChange}
+            sx={{ flex: '1 1 160px' }}
+            inputProps={{ step: 'any' }}
+          />
+        </Box>
 
         <GeolocationButton onLocate={onLocate} />
 
@@ -97,25 +86,14 @@ export default function PrestataireProfileView({
         />
 
         <FormControlLabel
-          control={
-            <Switch
-              checked={form.disponible}
-              onChange={onToggle}
-              name="disponible"
-            />
-          }
+          control={<Switch checked={form.disponible} onChange={onToggle} name="disponible" />}
           label="Disponible pour de nouvelles missions"
         />
 
-        <Button
-          type="submit"
-          variant="contained"
-          size="large"
-          disabled={submitting}
-        >
+        <Button type="submit" variant="contained" size="large" disabled={submitting}>
           {submitting ? 'Enregistrement…' : 'Enregistrer'}
         </Button>
       </Stack>
     </Box>
-  );
+  )
 }

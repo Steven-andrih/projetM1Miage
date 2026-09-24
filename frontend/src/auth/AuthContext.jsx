@@ -11,38 +11,44 @@ export const ROLES = {
 
 export const AuthContext = createContext(null);
 
-async function resolveRole(claimRole) {
-  if (claimRole) return claimRole;
-
+/**
+ * Résout à la fois le rôle ET l'id du profil métier (Client.id ou
+ * Prestataire.id), qui est DIFFÉRENT de l'id Utilisateur (claim JWT
+ * "user_id"). C'est ce profileId qui doit être comparé aux champs
+ * "client" / "prestataire" renvoyés par les autres endpoints
+ * (demandes, propositions, missions, avis, prestataire-services...).
+ */
+async function resolveRoleAndProfile(claimRole) {
   try {
-    await usersApi.getClientProfile();
-    return ROLES.CLIENT;
+    const clientProfile = await usersApi.getClientProfile();
+    return { role: ROLES.CLIENT, profileId: clientProfile.id };
   } catch {
     // pas un client
   }
 
   try {
-    await usersApi.getPrestataireProfile();
-    return ROLES.PRESTATAIRE;
+    const prestataireProfile = await usersApi.getPrestataireProfile();
+    return { role: ROLES.PRESTATAIRE, profileId: prestataireProfile.id };
   } catch {
     // pas un prestataire
   }
 
-  return ROLES.ADMIN;
+  return { role: claimRole || ROLES.ADMIN, profileId: null };
 }
 
-function buildUser(payload, role, fallbackUsername) {
-  return {
-    username: payload?.username ?? fallbackUsername,
-    userId: payload?.user_id ?? null, // claim par défaut de djangorestframework-simplejwt
-    role,
-  };
+function buildUser({ username, userId, role, profileId }) {
+  return { username, userId, profileId, role };
 }
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    // Ancien format en cache (avant l'ajout de profileId) : on force
+    // une re-résolution complète plutôt que d'utiliser des données incomplètes.
+    if (parsed.profileId === undefined) return null;
+    return parsed;
   });
   const [loading, setLoading] = useState(true);
 
@@ -60,9 +66,16 @@ export function AuthProvider({ children }) {
     }
 
     const payload = decodeJwt(access);
-    resolveRole(payload?.role)
-      .then((role) => {
-        const rebuiltUser = buildUser(payload, role);
+    const userId = payload?.user_id != null ? Number(payload.user_id) : null;
+
+    resolveRoleAndProfile(payload?.role)
+      .then(({ role, profileId }) => {
+        const rebuiltUser = buildUser({
+          username: payload?.username,
+          userId,
+          role,
+          profileId,
+        });
         localStorage.setItem('user', JSON.stringify(rebuiltUser));
         setUser(rebuiltUser);
       })
@@ -76,8 +89,14 @@ export function AuthProvider({ children }) {
     localStorage.setItem('refresh', refresh);
 
     const payload = decodeJwt(access);
-    const role = await resolveRole(payload?.role);
-    const nextUser = buildUser(payload, role, username);
+    const userId = payload?.user_id != null ? Number(payload.user_id) : null;
+    const { role, profileId } = await resolveRoleAndProfile(payload?.role);
+    const nextUser = buildUser({
+      username: payload?.username ?? username,
+      userId,
+      role,
+      profileId,
+    });
 
     localStorage.setItem('user', JSON.stringify(nextUser));
     setUser(nextUser);
