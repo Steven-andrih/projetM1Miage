@@ -7,14 +7,14 @@ import {
   Switch,
   TextField,
   Typography,
-} from '@mui/material'
-import GeolocationButton from '../../components/GeolocationButton'
+} from '@mui/material';
+import GeolocationButton from '../../components/GeolocationButton';
 
 const STATUT_COLORS = {
   VALIDE: 'success',
   EN_ATTENTE: 'warning',
   REFUSE: 'error',
-}
+};
 
 export default function PrestataireProfileView({
   form,
@@ -50,7 +50,13 @@ export default function PrestataireProfileView({
           minRows={3}
           fullWidth
         />
-        <TextField label="Adresse" name="adresse" value={form.adresse} onChange={onChange} fullWidth />
+        <TextField
+          label="Adresse"
+          name="adresse"
+          value={form.adresse}
+          onChange={onChange}
+          fullWidth
+        />
 
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <TextField
@@ -86,14 +92,25 @@ export default function PrestataireProfileView({
         />
 
         <FormControlLabel
-          control={<Switch checked={form.disponible} onChange={onToggle} name="disponible" />}
+          control={
+            <Switch
+              checked={form.disponible}
+              onChange={onToggle}
+              name="disponible"
+            />
+          }
           label="Disponible pour de nouvelles missions"
         />
 
-        <Button type="submit" variant="contained" size="large" disabled={submitting}>
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          disabled={submitting}
+        >
           {submitting ? 'Enregistrement…' : 'Enregistrer'}
         </Button>
       </Stack>
     </Box>
-  )
+  );
 }

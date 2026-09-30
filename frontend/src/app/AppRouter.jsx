@@ -15,6 +15,9 @@ import MesServicesContainer from '../features/services/MesServicesContainer';
 import DemandeListContainer from '../features/demandes/DemandeListContainer';
 import DemandeCreateContainer from '../features/demandes/DemandeCreateContainer';
 import DemandeDetailContainer from '../features/demandes/DemandeDetailContainer';
+import DemandesOuvertesContainer from '../features/demandes-ouvertes/DemandesOuvertesContainer';
+import DemandeOuverteDetailContainer from '../features/demandes-ouvertes/DemandeOuverteDetailContainer';
+import MesPropositionsContainer from '../features/propositions/MesPropositionsContainer';
 
 function HomeRedirect() {
   const { role, loading } = useAuth();
@@ -96,15 +99,15 @@ export default function AppRouter() {
               />
               <Route
                 path="/prestataire/demandes"
-                element={<PlaceholderPage title="Demandes ouvertes" />}
+                element={<DemandesOuvertesContainer />}
               />
               <Route
                 path="/prestataire/demandes/:id"
-                element={<PlaceholderPage title="Détail de la demande" />}
+                element={<DemandeOuverteDetailContainer />}
               />
               <Route
                 path="/prestataire/propositions"
-                element={<PlaceholderPage title="Mes propositions" />}
+                element={<MesPropositionsContainer />}
               />
               <Route
                 path="/prestataire/missions"
