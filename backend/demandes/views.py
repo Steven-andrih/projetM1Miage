@@ -22,7 +22,19 @@ class DemandeViewSet(viewsets.ModelViewSet):
         return Demande.objects.all()
 
     def perform_create(self, serializer):
-        serializer.save(client=self.request.user.client_profile)
+        # 'statut' est en lecture seule dans le serializer (protection contre
+        # toute modification arbitraire via PATCH), mais à la création
+        # uniquement, on autorise le client à choisir entre BROUILLON et
+        # PUBLIEE. Toute autre valeur (ou absence de valeur) retombe sur
+        # BROUILLON par défaut.
+        statut_demande = self.request.data.get('statut', Demande.Statut.BROUILLON)
+        if statut_demande not in (Demande.Statut.BROUILLON, Demande.Statut.PUBLIEE):
+            statut_demande = Demande.Statut.BROUILLON
+
+        serializer.save(
+            client=self.request.user.client_profile,
+            statut=statut_demande,
+        )
 
     @action(detail=True, methods=['get'])
     def recommandations(self, request, pk=None):
