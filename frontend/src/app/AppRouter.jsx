@@ -25,6 +25,10 @@ import MesPropositionsContainer from '../features/propositions/MesPropositionsCo
 import MissionListContainer from '../features/missions/MissionListContainer'
 import MissionDetailContainer from '../features/missions/MissionDetailContainer'
 
+import ClientDashboardContainer from '../features/dashboard/ClientDashboardContainer'
+import PrestataireDashboardContainer from '../features/dashboard/PrestataireDashboardContainer'
+import AdminDashboardContainer from '../features/dashboard/AdminDashboardContainer'
+
 function HomeRedirect() {
   const { role, loading } = useAuth()
 
@@ -55,10 +59,7 @@ export default function AppRouter() {
 
             {/* --- Espace Client --- */}
             <Route element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]} />}>
-              <Route
-                path="/client/dashboard"
-                element={<PlaceholderPage title="Tableau de bord client" />}
-              />
+              <Route path="/client/dashboard" element={<ClientDashboardContainer />} />
               <Route path="/client/profil" element={<ClientProfileContainer />} />
               <Route path="/client/demandes" element={<DemandeListContainer />} />
               <Route path="/client/demandes/nouvelle" element={<DemandeCreateContainer />} />
@@ -69,10 +70,7 @@ export default function AppRouter() {
 
             {/* --- Espace Prestataire --- */}
             <Route element={<ProtectedRoute allowedRoles={[ROLES.PRESTATAIRE]} />}>
-              <Route
-                path="/prestataire/dashboard"
-                element={<PlaceholderPage title="Tableau de bord prestataire" />}
-              />
+              <Route path="/prestataire/dashboard" element={<PrestataireDashboardContainer />} />
               <Route path="/prestataire/profil" element={<PrestataireProfileContainer />} />
               <Route path="/prestataire/services" element={<MesServicesContainer />} />
               <Route path="/prestataire/demandes" element={<DemandesOuvertesContainer />} />
@@ -84,10 +82,7 @@ export default function AppRouter() {
 
             {/* --- Espace Admin --- */}
             <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
-              <Route
-                path="/admin/dashboard"
-                element={<PlaceholderPage title="Tableau de bord admin" />}
-              />
+              <Route path="/admin/dashboard" element={<AdminDashboardContainer />} />
               <Route
                 path="/admin/categories"
                 element={<PlaceholderPage title="Gestion des catégories" />}
