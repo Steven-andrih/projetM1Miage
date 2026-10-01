@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Alert, Snackbar, Typography } from '@mui/material'
 import * as demandesApi from '../../api/demandes.api'
 import * as propositionsApi from '../../api/propositions.api'
+import * as recommandationsApi from '../../api/recommandations.api'
 import { unwrapList } from '../../utils/api'
 import { useAuth } from '../../auth/useAuth'
 import { useCatalogue } from '../catalogue/useCatalogue'
@@ -12,6 +13,7 @@ import ErrorMessage from '../../components/ErrorMessage'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import DemandeDetailView from './DemandeDetailView'
 import PropositionsRecuesList from './PropositionsRecuesList'
+import RecommendationsSection from './RecommendationsSection'
 
 export default function DemandeDetailContainer() {
   const { id } = useParams()
@@ -35,6 +37,11 @@ export default function DemandeDetailContainer() {
 
   const [acceptTargetId, setAcceptTargetId] = useState(null)
   const [accepting, setAccepting] = useState(false)
+
+  const [recommandations, setRecommandations] = useState([])
+  const [recoLoaded, setRecoLoaded] = useState(false)
+  const [recoLoading, setRecoLoading] = useState(false)
+  const [recoError, setRecoError] = useState(false)
 
   const loadAll = () => {
     setLoading(true)
@@ -62,6 +69,8 @@ export default function DemandeDetailContainer() {
 
   useEffect(() => {
     loadAll()
+    setRecoLoaded(false)
+    setRecommandations([])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
@@ -135,6 +144,17 @@ export default function DemandeDetailContainer() {
     }
   }
 
+  const handleLoadRecommandations = () => {
+    setRecoLoaded(true)
+    setRecoLoading(true)
+    setRecoError(false)
+    recommandationsApi
+      .getRecommandations(id)
+      .then((data) => setRecommandations(unwrapList(data)))
+      .catch(() => setRecoError(true))
+      .finally(() => setRecoLoading(false))
+  }
+
   if (loading || catalogueLoading) return <LoadingSpinner label="Chargement de la demande…" />
   if (!demande) return <ErrorMessage message="Cette demande est introuvable." />
 
@@ -167,6 +187,14 @@ export default function DemandeDetailContainer() {
             Propositions reçues
           </Typography>
           <PropositionsRecuesList propositions={propositions} onAccept={(pid) => setAcceptTargetId(pid)} />
+
+          <RecommendationsSection
+            recommandations={recommandations}
+            loading={recoLoading}
+            error={recoError}
+            loaded={recoLoaded}
+            onLoad={handleLoadRecommandations}
+          />
         </>
       )}
 
