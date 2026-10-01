@@ -1,14 +1,22 @@
-import { Box, MenuItem, Stack, TextField } from '@mui/material';
-import CategorySelect from '../catalogue/CategorySelect';
-import ServiceSelect from '../catalogue/ServiceSelect';
-import GeolocationButton from '../../components/GeolocationButton';
-import AiImproveButton from '../../components/AiImproveButton';
+import { Box, MenuItem, Stack, TextField } from '@mui/material'
+import CategorySelect from '../catalogue/CategorySelect'
+import ServiceSelect from '../catalogue/ServiceSelect'
+import GeolocationButton from '../../components/GeolocationButton'
+import AiImproveButton from '../../components/AiImproveButton'
 
 const URGENCE_OPTIONS = [
   { value: 'FAIBLE', label: 'Faible' },
   { value: 'NORMALE', label: 'Normale' },
   { value: 'URGENTE', label: 'Urgente' },
-];
+]
+
+const STATUT_OPTIONS = [
+  { value: 'BROUILLON', label: 'Brouillon' },
+  { value: 'PUBLIEE', label: 'Publiée' },
+  { value: 'EN_COURS', label: 'En cours' },
+  { value: 'TERMINEE', label: 'Terminée' },
+  { value: 'ANNULEE', label: 'Annulée' },
+]
 
 export default function DemandeFormFields({
   form,
@@ -19,17 +27,11 @@ export default function DemandeFormFields({
   onCategoryFilterChange,
   onLocate,
   onDescriptionImproved,
+  showStatut = false,
 }) {
   return (
     <Stack spacing={2}>
-      <TextField
-        label="Titre"
-        name="titre"
-        value={form.titre}
-        onChange={onChange}
-        required
-        fullWidth
-      />
+      <TextField label="Titre" name="titre" value={form.titre} onChange={onChange} required fullWidth />
 
       <TextField
         label="Description"
@@ -41,11 +43,7 @@ export default function DemandeFormFields({
         required
         fullWidth
       />
-      <AiImproveButton
-        value={form.description}
-        contexte="annonce"
-        onImproved={onDescriptionImproved}
-      />
+      <AiImproveButton value={form.description} contexte="annonce" onImproved={onDescriptionImproved} />
 
       <CategorySelect
         categories={categories}
@@ -90,14 +88,7 @@ export default function DemandeFormFields({
         fullWidth
       />
 
-      <TextField
-        select
-        label="Urgence"
-        name="urgence"
-        value={form.urgence}
-        onChange={onChange}
-        fullWidth
-      >
+      <TextField select label="Urgence" name="urgence" value={form.urgence} onChange={onChange} fullWidth>
         {URGENCE_OPTIONS.map((option) => (
           <MenuItem key={option.value} value={option.value}>
             {option.label}
@@ -105,13 +96,17 @@ export default function DemandeFormFields({
         ))}
       </TextField>
 
-      <TextField
-        label="Adresse"
-        name="adresse"
-        value={form.adresse}
-        onChange={onChange}
-        fullWidth
-      />
+      {showStatut && (
+        <TextField select label="Statut" name="statut" value={form.statut} onChange={onChange} fullWidth>
+          {STATUT_OPTIONS.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      )}
+
+      <TextField label="Adresse" name="adresse" value={form.adresse} onChange={onChange} fullWidth />
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <TextField
@@ -135,5 +130,5 @@ export default function DemandeFormFields({
       </Box>
       <GeolocationButton onLocate={onLocate} />
     </Stack>
-  );
+  )
 }

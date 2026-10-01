@@ -56,6 +56,7 @@ export default function DemandeDetailContainer() {
           budget_max: demandeData.budget_max ?? '',
           date_souhaitee: demandeData.date_souhaitee ?? '',
           urgence: demandeData.urgence ?? 'NORMALE',
+          statut: demandeData.statut ?? 'BROUILLON',
           adresse: demandeData.adresse ?? '',
           latitude: demandeData.latitude ?? '',
           longitude: demandeData.longitude ?? '',
