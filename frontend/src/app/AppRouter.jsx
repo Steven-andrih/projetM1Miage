@@ -29,6 +29,9 @@ import ClientDashboardContainer from '../features/dashboard/ClientDashboardConta
 import PrestataireDashboardContainer from '../features/dashboard/PrestataireDashboardContainer'
 import AdminDashboardContainer from '../features/dashboard/AdminDashboardContainer'
 
+import CategoriesAdminContainer from '../features/admin/CategoriesAdminContainer'
+import ServicesAdminContainer from '../features/admin/ServicesAdminContainer'
+
 function HomeRedirect() {
   const { role, loading } = useAuth()
 
@@ -83,14 +86,8 @@ export default function AppRouter() {
             {/* --- Espace Admin --- */}
             <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
               <Route path="/admin/dashboard" element={<AdminDashboardContainer />} />
-              <Route
-                path="/admin/categories"
-                element={<PlaceholderPage title="Gestion des catégories" />}
-              />
-              <Route
-                path="/admin/services"
-                element={<PlaceholderPage title="Gestion des services" />}
-              />
+              <Route path="/admin/categories" element={<CategoriesAdminContainer />} />
+              <Route path="/admin/services" element={<ServicesAdminContainer />} />
             </Route>
           </Route>
         </Route>

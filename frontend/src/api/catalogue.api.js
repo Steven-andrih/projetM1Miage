@@ -5,9 +5,39 @@ export function getCategories() {
   return axiosClient.get('/categories/').then((res) => res.data)
 }
 
+/** POST /api/categories/ */
+export function createCategorie(payload) {
+  return axiosClient.post('/categories/', payload).then((res) => res.data)
+}
+
+/** PATCH /api/categories/{id}/ */
+export function updateCategorie(id, payload) {
+  return axiosClient.patch(`/categories/${id}/`, payload).then((res) => res.data)
+}
+
+/** DELETE /api/categories/{id}/ */
+export function deleteCategorie(id) {
+  return axiosClient.delete(`/categories/${id}/`)
+}
+
 /** GET /api/services/ */
 export function getServices() {
   return axiosClient.get('/services/').then((res) => res.data)
+}
+
+/** POST /api/services/ */
+export function createService(payload) {
+  return axiosClient.post('/services/', payload).then((res) => res.data)
+}
+
+/** PATCH /api/services/{id}/ */
+export function updateService(id, payload) {
+  return axiosClient.patch(`/services/${id}/`, payload).then((res) => res.data)
+}
+
+/** DELETE /api/services/{id}/ */
+export function deleteService(id) {
+  return axiosClient.delete(`/services/${id}/`)
 }
 
 /** GET /api/prestataire-services/ */
