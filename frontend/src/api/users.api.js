@@ -19,3 +19,8 @@ export function getPrestataireProfile() {
 export function updatePrestataireProfile(data) {
   return axiosClient.patch('/users/prestataire/me/', data).then((res) => res.data)
 }
+
+/** GET /api/users/prestataires/carte/ */
+export function getPrestatairesCarte() {
+  return axiosClient.get('/users/prestataires/carte/').then((res) => res.data)
+}

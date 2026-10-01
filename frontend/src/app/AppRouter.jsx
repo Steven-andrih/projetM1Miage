@@ -32,6 +32,8 @@ import AdminDashboardContainer from '../features/dashboard/AdminDashboardContain
 import CategoriesAdminContainer from '../features/admin/CategoriesAdminContainer'
 import ServicesAdminContainer from '../features/admin/ServicesAdminContainer'
 
+import CartePrestatairesContainer from '../features/carte/CartePrestatairesContainer'
+
 function HomeRedirect() {
   const { role, loading } = useAuth()
 
@@ -55,10 +57,7 @@ export default function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path="/" element={<HomeRedirect />} />
-            <Route
-              path="/carte-prestataires"
-              element={<PlaceholderPage title="Carte des prestataires" />}
-            />
+            <Route path="/carte-prestataires" element={<CartePrestatairesContainer />} />
 
             {/* --- Espace Client --- */}
             <Route element={<ProtectedRoute allowedRoles={[ROLES.CLIENT]} />}>
