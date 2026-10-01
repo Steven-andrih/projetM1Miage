@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { emitToast } from '../utils/toastBus'
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
@@ -10,7 +11,6 @@ const axiosClient = axios.create({
   },
 })
 
-// --- Requête : injecte le token d'accès s'il existe ---
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('access')
   if (token) {
@@ -19,7 +19,6 @@ axiosClient.interceptors.request.use((config) => {
   return config
 })
 
-// --- Réponse : tente un refresh automatique sur 401 ---
 let isRefreshing = false
 let pendingQueue = []
 
@@ -48,6 +47,13 @@ axiosClient.interceptors.response.use(
     const isAuthEndpoint =
       originalRequest?.url?.includes('/token/') ||
       originalRequest?.url?.includes('/token/refresh/')
+
+    // Serveur injoignable (pas de réponse du tout) : toast générique,
+    // car aucun container ne peut afficher une ErrorMessage dans ce cas.
+    if (!error.response) {
+      emitToast('Impossible de contacter le serveur. Vérifiez votre connexion.', 'error')
+      return Promise.reject(error)
+    }
 
     if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
@@ -79,11 +85,16 @@ axiosClient.interceptors.response.use(
         return axiosClient(originalRequest)
       } catch (refreshError) {
         resolveQueue(refreshError, null)
+        emitToast('Votre session a expiré, veuillez vous reconnecter.', 'warning')
         clearSessionAndRedirect()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false
       }
+    }
+
+    if (status >= 500) {
+      emitToast("Une erreur serveur est survenue. Réessayez plus tard.", 'error')
     }
 
     return Promise.reject(error)
