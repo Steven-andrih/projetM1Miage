@@ -11,6 +11,7 @@ import ErrorMessage from '../../components/ErrorMessage'
 import StatCard from '../../components/StatCard'
 import DashboardGrid from './DashboardGrid'
 import MiniBarList from './MiniBarList'
+import EvolutionMensuelleChart from './EvolutionMensuelleChart'
 
 export default function AdminDashboardContainer() {
   const [data, setData] = useState(null)
@@ -56,6 +57,16 @@ export default function AdminDashboardContainer() {
           color="secondary.main"
         />
       </DashboardGrid>
+
+      <Paper variant="outlined" sx={{ p: 2.5, mb: 2.5 }}>
+        <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+          Évolution mensuelle de l'activité
+        </Typography>
+        <EvolutionMensuelleChart
+          demandes={data.evolution_mensuelle}
+          missions={data.evolution_mensuelle_missions}
+        />
+      </Paper>
 
       <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 2.5 }}>
         <Paper variant="outlined" sx={{ p: 2.5 }}>

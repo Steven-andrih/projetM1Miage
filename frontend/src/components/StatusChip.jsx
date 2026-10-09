@@ -1,23 +1,20 @@
-import { Chip } from '@mui/material';
-
-// Regroupe les statuts de toutes les ressources (demandes, propositions, missions)
-const STATUS_COLORS = {
-  BROUILLON: 'default',
-  PUBLIEE: 'info',
-  EN_COURS: 'warning',
-  TERMINEE: 'success',
-  ANNULEE: 'error',
-  EN_ATTENTE: 'warning',
-  ACCEPTEE: 'success',
-  REFUSEE: 'error',
-};
+import { Chip, alpha, useTheme } from '@mui/material';
+import { getStatusConfig, getStatusColor } from '../utils/statusConfig';
 
 export default function StatusChip({ status }) {
+  const theme = useTheme();
+  const config = getStatusConfig(status);
+  const main = getStatusColor(theme, status);
+
   return (
     <Chip
-      label={status}
+      label={config.label}
       size="small"
-      color={STATUS_COLORS[status] || 'default'}
+      sx={{
+        bgcolor: alpha(main, 0.12),
+        color: config.palette ? main : 'text.primary',
+        '& .MuiChip-label': { px: 1.25 },
+      }}
     />
   );
 }

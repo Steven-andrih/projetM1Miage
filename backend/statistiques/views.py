@@ -42,6 +42,13 @@ class ClientDashboardView(APIView):
         for d in dernieres_demandes:
             d['nb_propositions'] = Proposition.objects.filter(demande_id=d['id']).count()
 
+        evolution_mensuelle = list(
+            demandes.annotate(mois=TruncMonth('date_creation'))
+            .values('mois')
+            .annotate(total=Count('id'))
+            .order_by('mois')
+        )
+
         return Response({
             'nb_demandes_total': demandes.count(),
             'demandes_par_statut': demandes_par_statut,
@@ -49,6 +56,7 @@ class ClientDashboardView(APIView):
             'nb_missions_terminees': missions.filter(statut=Mission.Statut.TERMINEE).count(),
             'propositions_en_attente_de_ma_decision': propositions_en_attente,
             'dernieres_demandes': dernieres_demandes,
+            'evolution_mensuelle': evolution_mensuelle,
         })
 
 
@@ -85,6 +93,26 @@ class PrestataireDashboardView(APIView):
             propositions__prestataire=prestataire  # déjà répondu
         ).count()
 
+        propositions_par_statut = {
+            choix: propositions.filter(statut=choix).count()
+            for choix, _ in Proposition.Statut.choices
+        }
+
+        evolution_mensuelle_missions = list(
+            missions.annotate(mois=TruncMonth('date_debut'))
+            .values('mois')
+            .annotate(total=Count('id'))
+            .order_by('mois')
+        )
+
+        revenus_par_mois = list(
+            missions.filter(statut=Mission.Statut.TERMINEE, date_fin__isnull=False)
+            .annotate(mois=TruncMonth('date_fin'))
+            .values('mois')
+            .annotate(total=Sum('proposition__tarif_propose'))
+            .order_by('mois')
+        )
+
         return Response({
             'nb_missions_en_cours': missions.filter(statut=Mission.Statut.EN_COURS).count(),
             'nb_missions_terminees': missions.filter(statut=Mission.Statut.TERMINEE).count(),
@@ -98,6 +126,9 @@ class PrestataireDashboardView(APIView):
             'taux_acceptation_pct': taux_acceptation,
             'revenu_total_estime': revenu_total,
             'nb_opportunites_disponibles': nb_opportunites,
+            'propositions_par_statut': propositions_par_statut,
+            'evolution_mensuelle_missions': evolution_mensuelle_missions,
+            'revenus_par_mois': revenus_par_mois,
         })
 
 class DashboardView(APIView):
@@ -155,6 +186,14 @@ class DashboardView(APIView):
             .order_by('mois')
         )
 
+        # --- Évolution mensuelle des missions démarrées ---
+        evolution_mensuelle_missions = list(
+            Mission.objects.annotate(mois=TruncMonth('date_debut'))
+            .values('mois')
+            .annotate(total=Count('id'))
+            .order_by('mois')
+        )
+
         return Response({
             'nb_demandes': nb_demandes,
             'nb_missions': nb_missions,
@@ -167,4 +206,5 @@ class DashboardView(APIView):
             'repartition_geographique': repartition_geo,
             'categories_les_plus_recherchees': categories_recherchees,
             'evolution_mensuelle': evolution_mensuelle,
+            'evolution_mensuelle_missions': evolution_mensuelle_missions,
         })
