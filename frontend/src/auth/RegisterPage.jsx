@@ -8,6 +8,7 @@ import {
   MenuItem,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
 import { useAuth } from './useAuth';
 
@@ -58,6 +59,13 @@ export default function RegisterPage() {
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       <Stack spacing={2}>
+        <Box sx={{ mb: 1 }}>
+          <Typography variant="h5">Créer un compte</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Quelques informations suffisent pour commencer.
+          </Typography>
+        </Box>
+
         {error && <Alert severity="error">{error}</Alert>}
 
         <TextField

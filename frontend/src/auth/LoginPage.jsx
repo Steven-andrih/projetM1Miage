@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Box, Button, Link, Stack, TextField } from '@mui/material';
+import { Alert, Box, Button, Link, Stack, TextField, Typography } from '@mui/material';
 import { useAuth } from './useAuth';
 
 export default function LoginPage() {
@@ -37,6 +37,13 @@ export default function LoginPage() {
   return (
     <Box component="form" onSubmit={handleSubmit} noValidate>
       <Stack spacing={2}>
+        <Box sx={{ mb: 1 }}>
+          <Typography variant="h5">Bon retour</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Connectez-vous pour accéder à votre espace.
+          </Typography>
+        </Box>
+
         {error && <Alert severity="error">{error}</Alert>}
 
         <TextField

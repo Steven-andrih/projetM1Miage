@@ -5,7 +5,7 @@ export default function DashboardGrid({ children }) {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(auto-fit, minmax(200px, 1fr))' },
         gap: 2.5,
         mb: 4,
       }}

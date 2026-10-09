@@ -1,25 +1,36 @@
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined'
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined'
+import WorkOutlineIcon from '@mui/icons-material/WorkOutlineOutlined'
+import PersonOutlineIcon from '@mui/icons-material/PersonOutlineOutlined'
+import ExploreOutlinedIcon from '@mui/icons-material/ExploreOutlined'
+import ForumOutlinedIcon from '@mui/icons-material/ForumOutlined'
+import HandymanOutlinedIcon from '@mui/icons-material/HandymanOutlined'
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined'
+import ListAltOutlinedIcon from '@mui/icons-material/ListAltOutlined'
+import MapOutlinedIcon from '@mui/icons-material/MapOutlined'
+
 export const NAV_ITEMS = {
   CLIENT: [
-    { label: 'Tableau de bord', path: '/client/dashboard' },
-    { label: 'Mes demandes', path: '/client/demandes' },
-    { label: 'Mes missions', path: '/client/missions' },
-    { label: 'Mon profil', path: '/client/profil' },
+    { label: 'Tableau de bord', path: '/client/dashboard', icon: DashboardOutlinedIcon },
+    { label: 'Mes demandes', path: '/client/demandes', icon: AssignmentOutlinedIcon },
+    { label: 'Mes missions', path: '/client/missions', icon: WorkOutlineIcon },
+    { label: 'Mon profil', path: '/client/profil', icon: PersonOutlineIcon },
   ],
   PRESTATAIRE: [
-    { label: 'Tableau de bord', path: '/prestataire/dashboard' },
-    { label: 'Demandes ouvertes', path: '/prestataire/demandes' },
-    { label: 'Mes propositions', path: '/prestataire/propositions' },
-    { label: 'Mes missions', path: '/prestataire/missions' },
-    { label: 'Mes services', path: '/prestataire/services' },
-    { label: 'Mon profil', path: '/prestataire/profil' },
+    { label: 'Tableau de bord', path: '/prestataire/dashboard', icon: DashboardOutlinedIcon },
+    { label: 'Demandes ouvertes', path: '/prestataire/demandes', icon: ExploreOutlinedIcon },
+    { label: 'Mes propositions', path: '/prestataire/propositions', icon: ForumOutlinedIcon },
+    { label: 'Mes missions', path: '/prestataire/missions', icon: WorkOutlineIcon },
+    { label: 'Mes services', path: '/prestataire/services', icon: HandymanOutlinedIcon },
+    { label: 'Mon profil', path: '/prestataire/profil', icon: PersonOutlineIcon },
   ],
   ADMIN: [
-    { label: 'Tableau de bord', path: '/admin/dashboard' },
-    { label: 'Catégories', path: '/admin/categories' },
-    { label: 'Services', path: '/admin/services' },
+    { label: 'Tableau de bord', path: '/admin/dashboard', icon: DashboardOutlinedIcon },
+    { label: 'Catégories', path: '/admin/categories', icon: CategoryOutlinedIcon },
+    { label: 'Services', path: '/admin/services', icon: ListAltOutlinedIcon },
   ],
 }
 
 export const COMMON_NAV_ITEMS = [
-  { label: 'Carte des prestataires', path: '/carte-prestataires' },
+  { label: 'Carte des prestataires', path: '/carte-prestataires', icon: MapOutlinedIcon },
 ]
