@@ -14,6 +14,8 @@ from users.permissions import IsClientRole, IsPrestataireRole
 from propositions.models import Proposition
 from services.models import PrestataireService
 from avis.models import Avis
+from users.models import Utilisateur, Prestataire
+from users.utils import nom_affiche
 
 
 class ClientDashboardView(APIView):
@@ -49,7 +51,24 @@ class ClientDashboardView(APIView):
             .order_by('mois')
         )
 
+        from messagerie.services import total_non_lus
+
+        missions_a_noter = [
+            {
+                'id': m.id,
+                'titre': m.proposition.demande.titre,
+                'prestataire': nom_affiche(m.proposition.prestataire.utilisateur),
+                'date_fin': m.date_fin,
+            }
+            for m in missions.filter(statut=Mission.Statut.TERMINEE, avis__isnull=True)
+            .select_related('proposition__demande', 'proposition__prestataire__utilisateur')
+            .order_by('-date_fin')[:5]
+        ]
+
         return Response({
+            'messages_non_lus': total_non_lus(request.user),
+            'missions_a_noter': missions_a_noter,
+            'nb_missions_a_noter': missions.filter(statut=Mission.Statut.TERMINEE, avis__isnull=True).count(),
             'nb_demandes_total': demandes.count(),
             'demandes_par_statut': demandes_par_statut,
             'nb_missions_en_cours': missions.filter(statut=Mission.Statut.EN_COURS).count(),
@@ -87,6 +106,7 @@ class PrestataireDashboardView(APIView):
             prestataire=prestataire, actif=True
         ).values_list('service_id', flat=True)
         nb_opportunites = Demande.objects.filter(
+            client__utilisateur__is_active=True,
             service_id__in=services_ids,
             statut__in=[Demande.Statut.BROUILLON, Demande.Statut.PUBLIEE],
         ).exclude(
@@ -113,7 +133,41 @@ class PrestataireDashboardView(APIView):
             .order_by('mois')
         )
 
+        from messagerie.services import total_non_lus
+
+        nb_terminees = missions.filter(statut=Mission.Statut.TERMINEE).count()
+        revenu_moyen = round(float(revenu_total) / nb_terminees, 2) if nb_terminees else None
+
+        derniers_avis = [
+            {
+                'id': a.id,
+                'note': a.note,
+                'commentaire': a.commentaire,
+                'date_creation': a.date_creation,
+                'client': nom_affiche(a.mission.proposition.demande.client.utilisateur),
+                'demande': a.mission.proposition.demande.titre,
+            }
+            for a in Avis.objects.filter(mission__proposition__prestataire=prestataire, visible=True)
+            .select_related('mission__proposition__demande__client__utilisateur')
+            .order_by('-date_creation')[:3]
+        ]
+
+        completude = {
+            'description': bool((prestataire.description or '').strip()),
+            'adresse': bool((prestataire.adresse or '').strip()),
+            'position': prestataire.latitude is not None and prestataire.longitude is not None,
+            'service': PrestataireService.objects.filter(prestataire=prestataire, actif=True).exists(),
+            'document': prestataire.a_document,
+        }
+
         return Response({
+            'statut_validation': prestataire.statut_validation,
+            'a_document': prestataire.a_document,
+            'motif_refus': prestataire.motif_refus,
+            'completude': completude,
+            'revenu_moyen_par_mission': revenu_moyen,
+            'derniers_avis': derniers_avis,
+            'messages_non_lus': total_non_lus(request.user),
             'nb_missions_en_cours': missions.filter(statut=Mission.Statut.EN_COURS).count(),
             'nb_missions_terminees': missions.filter(statut=Mission.Statut.TERMINEE).count(),
             'note_moyenne': round(note_moyenne, 2) if note_moyenne else None,
@@ -186,6 +240,31 @@ class DashboardView(APIView):
             .order_by('mois')
         )
 
+        # --- Utilisateurs (hors comptes supprimés) ---
+        utilisateurs = Utilisateur.objects.filter(date_suppression__isnull=True)
+        nb_clients = utilisateurs.filter(role=Utilisateur.Role.CLIENT).count()
+        nb_prestataires = utilisateurs.filter(role=Utilisateur.Role.PRESTATAIRE).count()
+        nb_prestataires_en_attente = Prestataire.objects.filter(
+            statut_validation=Prestataire.StatutValidation.EN_ATTENTE,
+            utilisateur__date_suppression__isnull=True,
+        ).exclude(document_identite='').exclude(document_identite__isnull=True).count()
+
+        demandes_par_statut = {
+            choix: Demande.objects.filter(statut=choix).count() for choix in Demande.Statut.values
+        }
+        missions_par_statut = {
+            choix: Mission.objects.filter(statut=choix).count() for choix in Mission.Statut.values
+        }
+
+        # --- Évolution mensuelle des missions terminées ---
+        evolution_mensuelle_missions_terminees = list(
+            Mission.objects.filter(statut=Mission.Statut.TERMINEE, date_fin__isnull=False)
+            .annotate(mois=TruncMonth('date_fin'))
+            .values('mois')
+            .annotate(total=Count('id'))
+            .order_by('mois')
+        )
+
         # --- Évolution mensuelle des missions démarrées ---
         evolution_mensuelle_missions = list(
             Mission.objects.annotate(mois=TruncMonth('date_debut'))
@@ -207,4 +286,10 @@ class DashboardView(APIView):
             'categories_les_plus_recherchees': categories_recherchees,
             'evolution_mensuelle': evolution_mensuelle,
             'evolution_mensuelle_missions': evolution_mensuelle_missions,
+            'evolution_mensuelle_missions_terminees': evolution_mensuelle_missions_terminees,
+            'nb_clients': nb_clients,
+            'nb_prestataires': nb_prestataires,
+            'nb_prestataires_en_attente': nb_prestataires_en_attente,
+            'demandes_par_statut': demandes_par_statut,
+            'missions_par_statut': missions_par_statut,
         })
