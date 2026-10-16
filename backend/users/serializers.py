@@ -3,7 +3,7 @@ from PIL import Image, UnidentifiedImageError
 from rest_framework import serializers
 
 from .models import Utilisateur, Client, Prestataire
-from .utils import nom_affiche
+from .utils import nom_affiche, photo_url
 
 
 class ClientProfileSerializer(serializers.ModelSerializer):
@@ -62,13 +62,22 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class PrestataireCarteSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='utilisateur.username', read_only=True)
+    nom = serializers.SerializerMethodField()
+    photo = serializers.SerializerMethodField()
+    verifie = serializers.BooleanField(source='est_verifie', read_only=True)
 
     class Meta:
         model = Prestataire
         fields = (
-            'id', 'username', 'ville', 'latitude', 'longitude',
+            'id', 'username', 'nom', 'photo', 'verifie', 'ville', 'latitude', 'longitude',
             'annee_experience', 'disponible',
         )
+
+    def get_nom(self, obj):
+        return nom_affiche(obj.utilisateur)
+
+    def get_photo(self, obj):
+        return photo_url(obj.utilisateur)
 
 
 # ----------------------------------------------------------------------
@@ -110,6 +119,7 @@ def avis_prestataire(prestataire, visibles_seulement=True, limite=None):
             'date_creation': a.date_creation,
             'visible': a.visible,
             'client': nom_affiche(a.mission.proposition.demande.client.utilisateur),
+            'client_photo': photo_url(a.mission.proposition.demande.client.utilisateur),
             'demande': a.mission.proposition.demande.titre,
         }
         for a in qs

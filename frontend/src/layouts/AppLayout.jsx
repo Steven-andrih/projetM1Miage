@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
-  Avatar,
   Badge,
   Box,
   Container,
@@ -28,6 +27,8 @@ import { COMMON_NAV_ITEMS, NAV_ITEMS } from '../utils/navConfig';
 import BrandMark from '../components/BrandMark';
 import NotificationsProvider from '../components/NotificationsProvider';
 import useNotifications from '../hooks/useNotifications';
+import UserAvatar from '../components/UserAvatar';
+import MonCompteDialog from '../components/MonCompteDialog';
 
 const DRAWER_WIDTH = 264;
 const DRAWER_WIDTH_COLLAPSED = 80;
@@ -85,7 +86,8 @@ function AppLayoutContent() {
   const navItems = [...(NAV_ITEMS[role] || []), ...COMMON_NAV_ITEMS];
   const currentItem = navItems.find((item) => location.pathname.startsWith(item.path));
   const roleLabel = role ? role.charAt(0) + role.slice(1).toLowerCase() : '';
-  const initial = user?.username?.[0]?.toUpperCase() ?? '?';
+  const nomAffiche = user?.nom || user?.username || '';
+  const [compteOpen, setCompteOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -219,15 +221,18 @@ function AppLayoutContent() {
           gap: isCollapsed ? 1 : 1.5,
         }}
       >
-        <Tooltip title={isCollapsed ? `${user?.username} · ${roleLabel}` : ''} placement="right" arrow>
-          <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.9rem' }}>
-            {initial}
-          </Avatar>
+        <Tooltip title={isCollapsed ? `${nomAffiche} · Mon compte` : 'Mon compte'} placement="right" arrow>
+          <IconButton onClick={() => setCompteOpen(true)} sx={{ p: 0 }} aria-label="mon compte">
+            <UserAvatar photo={user?.photo} nom={nomAffiche} size={36} variant="filled" />
+          </IconButton>
         </Tooltip>
         {!isCollapsed && (
-          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+          <Box
+            onClick={() => setCompteOpen(true)}
+            sx={{ minWidth: 0, flexGrow: 1, cursor: 'pointer' }}
+          >
             <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
-              {user?.username}
+              {nomAffiche}
             </Typography>
             <Typography variant="caption" color="text.secondary" noWrap>
               {roleLabel}
@@ -278,17 +283,11 @@ function AppLayoutContent() {
             </Box>
           </Stack>
 
-          <Avatar
-            sx={{
-              width: 34,
-              height: 34,
-              bgcolor: alpha(theme.palette.primary.main, 0.12),
-              color: 'primary.dark',
-              fontSize: '0.85rem',
-            }}
-          >
-            {initial}
-          </Avatar>
+          <Tooltip title="Mon compte">
+            <IconButton onClick={() => setCompteOpen(true)} sx={{ p: 0 }} aria-label="mon compte">
+              <UserAvatar photo={user?.photo} nom={nomAffiche} size={34} />
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
@@ -332,6 +331,7 @@ function AppLayoutContent() {
           <Outlet />
         </Container>
       </Box>
+      <MonCompteDialog open={compteOpen} onClose={() => setCompteOpen(false)} />
     </Box>
   );
 }

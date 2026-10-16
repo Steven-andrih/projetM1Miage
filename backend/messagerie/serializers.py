@@ -1,21 +1,25 @@
 from rest_framework import serializers
 
-from users.utils import nom_affiche
+from users.utils import nom_affiche, photo_url
 from . import services
 from .models import Conversation, Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
     auteur_nom = serializers.SerializerMethodField()
+    auteur_photo = serializers.SerializerMethodField()
     est_moi = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ('id', 'type', 'contenu', 'date_envoi', 'auteur', 'auteur_nom', 'est_moi')
-        read_only_fields = ('id', 'type', 'date_envoi', 'auteur', 'auteur_nom', 'est_moi')
+        fields = ('id', 'type', 'contenu', 'date_envoi', 'auteur', 'auteur_nom', 'auteur_photo', 'est_moi')
+        read_only_fields = ('id', 'type', 'date_envoi', 'auteur', 'auteur_nom', 'auteur_photo', 'est_moi')
 
     def get_auteur_nom(self, obj):
         return None if obj.type == Message.Type.SYSTEME else nom_affiche(obj.auteur)
+
+    def get_auteur_photo(self, obj):
+        return None if obj.type == Message.Type.SYSTEME else photo_url(obj.auteur)
 
     def get_est_moi(self, obj):
         request = self.context.get('request')
@@ -65,11 +69,14 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     def get_client(self, obj):
         c = obj.proposition.demande.client
-        return {'id': c.id, 'nom': nom_affiche(c.utilisateur)}
+        return {'id': c.id, 'nom': nom_affiche(c.utilisateur), 'photo': photo_url(c.utilisateur)}
 
     def get_prestataire(self, obj):
         p = obj.proposition.prestataire
-        return {'id': p.id, 'nom': nom_affiche(p.utilisateur), 'verifie': p.est_verifie}
+        return {
+            'id': p.id, 'nom': nom_affiche(p.utilisateur),
+            'photo': photo_url(p.utilisateur), 'verifie': p.est_verifie,
+        }
 
     def get_dernier_message(self, obj):
         dernier = obj.messages.order_by('-date_envoi', '-id').first()

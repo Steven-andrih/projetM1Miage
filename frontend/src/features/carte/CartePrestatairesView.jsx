@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { Box, Chip, Paper, Stack, Typography } from '@mui/material'
+import UserAvatar from '../../components/UserAvatar'
+import VerifiedBadge from '../../components/VerifiedBadge'
 
 // Icône par défaut Leaflet cassée sous bundler (Vite) sans ce correctif explicite.
 delete L.Icon.Default.prototype._getIconUrl
@@ -47,20 +49,26 @@ export default function CartePrestatairesView({ prestataires }) {
                   '&:hover': { bgcolor: 'background.default' },
                 }}
               >
-                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    {p.username}
-                  </Typography>
-                  <Chip
-                    label={p.disponibilite ? 'Disponible' : 'Indisponible'}
-                    size="small"
-                    color={p.disponibilite ? 'success' : 'default'}
-                  />
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <UserAvatar photo={p.photo} nom={p.nom || p.username} size={40} />
+                  <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
+                        {p.nom || p.username} {p.verifie && <VerifiedBadge compact />}
+                      </Typography>
+                      <Chip
+                        label={p.disponible ? 'Disponible' : 'Indisponible'}
+                        size="small"
+                        color={p.disponible ? 'success' : 'default'}
+                        variant="outlined"
+                      />
+                    </Stack>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                      {p.ville || 'Ville non renseignée'}
+                      {p.annee_experience != null && ` · ${p.annee_experience} an(s) d'expérience`}
+                    </Typography>
+                  </Box>
                 </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  {p.ville || 'Ville non renseignée'}
-                  {p.experience != null && ` · ${p.experience} an(s) d'expérience`}
-                </Typography>
               </Paper>
             ))}
           </Stack>
@@ -77,13 +85,21 @@ export default function CartePrestatairesView({ prestataires }) {
           {withCoords.map((p) => (
             <Marker key={p.id} position={[Number(p.latitude), Number(p.longitude)]}>
               <Popup>
-                <strong>{p.username}</strong>
-                <br />
-                {p.ville || 'Ville non renseignée'}
-                <br />
-                {p.experience != null && `${p.experience} an(s) d'expérience`}
-                <br />
-                {p.disponibilite ? 'Disponible' : 'Indisponible'}
+                <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', minWidth: 180 }}>
+                  <UserAvatar photo={p.photo} nom={p.nom || p.username} size={40} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                      {p.nom || p.username} {p.verifie && <VerifiedBadge compact />}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" component="div">
+                      {p.ville || 'Ville non renseignée'}
+                      {p.annee_experience != null && ` · ${p.annee_experience} an(s)`}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: p.disponible ? 'success.main' : 'text.secondary', fontWeight: 600 }}>
+                      {p.disponible ? 'Disponible' : 'Indisponible'}
+                    </Typography>
+                  </Box>
+                </Stack>
               </Popup>
             </Marker>
           ))}

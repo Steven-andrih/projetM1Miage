@@ -13,7 +13,7 @@ from propositions.models import Proposition
 from .models import Prestataire, Utilisateur
 from .permissions import IsAdminRole
 from .serializers import avis_prestataire, services_prestataire
-from .utils import nom_affiche, note_prestataire, stats_missions
+from .utils import nom_affiche, note_prestataire, photo_url, stats_missions
 from .views import reponse_document
 
 
@@ -37,6 +37,7 @@ def resume_utilisateur(utilisateur):
         'id': utilisateur.id,
         'username': utilisateur.username,
         'nom': nom_affiche(utilisateur),
+        'photo': photo_url(utilisateur),
         'email': utilisateur.email,
         'telephone': utilisateur.telephone,
         'role': utilisateur.role,
@@ -184,6 +185,8 @@ class UtilisateurDetailView(APIView):
                     ).update(statut=Demande.Statut.ANNULEE)
                 profil.save()
 
+            if utilisateur.photo:
+                utilisateur.photo.delete(save=False)
             utilisateur.username = f"supprime_{utilisateur.pk}"
             utilisateur.first_name = ''
             utilisateur.last_name = ''
@@ -225,6 +228,7 @@ def resume_verification(prestataire):
         'id': prestataire.id,
         'utilisateur_id': prestataire.utilisateur_id,
         'nom': nom_affiche(prestataire.utilisateur),
+        'photo': photo_url(prestataire.utilisateur),
         'username': prestataire.utilisateur.username,
         'email': prestataire.utilisateur.email,
         'telephone': prestataire.utilisateur.telephone,

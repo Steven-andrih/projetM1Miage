@@ -15,7 +15,7 @@ from propositions.models import Proposition
 from services.models import PrestataireService
 from avis.models import Avis
 from users.models import Utilisateur, Prestataire
-from users.utils import nom_affiche
+from users.utils import nom_affiche, photo_url
 
 
 class ClientDashboardView(APIView):
@@ -58,6 +58,7 @@ class ClientDashboardView(APIView):
                 'id': m.id,
                 'titre': m.proposition.demande.titre,
                 'prestataire': nom_affiche(m.proposition.prestataire.utilisateur),
+                'prestataire_photo': photo_url(m.proposition.prestataire.utilisateur),
                 'date_fin': m.date_fin,
             }
             for m in missions.filter(statut=Mission.Statut.TERMINEE, avis__isnull=True)
@@ -145,6 +146,7 @@ class PrestataireDashboardView(APIView):
                 'commentaire': a.commentaire,
                 'date_creation': a.date_creation,
                 'client': nom_affiche(a.mission.proposition.demande.client.utilisateur),
+                'client_photo': photo_url(a.mission.proposition.demande.client.utilisateur),
                 'demande': a.mission.proposition.demande.titre,
             }
             for a in Avis.objects.filter(mission__proposition__prestataire=prestataire, visible=True)

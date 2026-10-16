@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import {
-  Avatar,
   Box,
   Button,
   Chip,
@@ -15,8 +14,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  alpha,
-  useTheme,
 } from '@mui/material'
 import BlockIcon from '@mui/icons-material/Block'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
@@ -32,6 +29,7 @@ import { formatAriary, formatDate, formatDateTime } from '../../../utils/format'
 import { libelleTypeDocument } from '../../../utils/verification'
 import { StatutCompteChip, VerificationChip } from './UtilisateursAdminContainer'
 import useCompteActions from './useCompteActions'
+import UserAvatar from '../../../components/UserAvatar'
 
 function Section({ title, action, children }) {
   return (
@@ -84,7 +82,6 @@ function MiniStat({ label, value, color }) {
 export default function UtilisateurDetailAdminContainer() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const theme = useTheme()
   const [utilisateur, setUtilisateur] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -127,14 +124,7 @@ export default function UtilisateurDetailAdminContainer() {
 
       <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 2.5 }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2.5} sx={{ alignItems: { xs: 'flex-start', lg: 'center' } }}>
-          <Avatar
-            sx={{
-              width: 64, height: 64, fontSize: '1.5rem',
-              bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark',
-            }}
-          >
-            {u.nom?.[0]?.toUpperCase()}
-          </Avatar>
+          <UserAvatar photo={u.photo} nom={u.nom} size={72} />
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Typography variant="h6">{u.nom}</Typography>
@@ -306,6 +296,7 @@ export default function UtilisateurDetailAdminContainer() {
                   {u.avis.map((a) => (
                     <Box key={a.id}>
                       <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                        <UserAvatar photo={a.client_photo} nom={a.client} size={24} />
                         <Rating value={a.note} readOnly size="small" />
                         <Typography variant="caption" color="text.secondary">
                           {a.client} · {a.demande} · {formatDate(a.date_creation)}

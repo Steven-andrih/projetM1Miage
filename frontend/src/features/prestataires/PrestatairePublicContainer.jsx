@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Avatar, Box, Chip, Paper, Rating, Stack, Typography, alpha, useTheme } from '@mui/material'
+import { Box, Chip, Paper, Rating, Stack, Typography } from '@mui/material'
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutlineOutlined'
 import * as usersApi from '../../api/users.api'
@@ -9,6 +9,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorMessage from '../../components/ErrorMessage'
 import VerifiedBadge from '../../components/VerifiedBadge'
 import { formatAriary, formatDate } from '../../utils/format'
+import UserAvatar from '../../components/UserAvatar'
 
 function Bloc({ title, children }) {
   return (
@@ -24,7 +25,6 @@ function Bloc({ title, children }) {
 /** Profil public d'un prestataire, consulté par un client depuis une proposition. */
 export default function PrestatairePublicContainer() {
   const { id } = useParams()
-  const theme = useTheme()
   const [profil, setProfil] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -50,11 +50,7 @@ export default function PrestatairePublicContainer() {
 
       <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 2.5 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5} sx={{ alignItems: { xs: 'flex-start', sm: 'center' } }}>
-          <Avatar
-            sx={{ width: 72, height: 72, fontSize: '1.6rem', bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark' }}
-          >
-            {profil.nom?.[0]?.toUpperCase()}
-          </Avatar>
+          <UserAvatar photo={profil.photo} nom={profil.nom} size={88} />
           <Box sx={{ flexGrow: 1 }}>
             <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Typography variant="h5">{profil.nom}</Typography>
@@ -146,8 +142,9 @@ export default function PrestatairePublicContainer() {
             <Stack spacing={2} divider={<Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />}>
               {profil.avis.map((a) => (
                 <Box key={a.id}>
-                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Rating value={a.note} readOnly size="small" />
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                    <UserAvatar photo={a.client_photo} nom={a.client} size={28} />
+                    <Rating value={a.note} readOnly size="small" sx={{ flexGrow: 1 }} />
                     <Typography variant="caption" color="text.secondary">
                       {formatDate(a.date_creation)}
                     </Typography>

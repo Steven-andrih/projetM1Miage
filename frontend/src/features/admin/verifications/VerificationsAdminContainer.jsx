@@ -29,6 +29,7 @@ import useBlobUrl from '../../../hooks/useBlobUrl'
 import useNotifications from '../../../hooks/useNotifications'
 import { formatDateTime } from '../../../utils/format'
 import { libelleTypeDocument } from '../../../utils/verification'
+import UserAvatar from '../../../components/UserAvatar'
 
 const ONGLETS = [
   { value: 'EN_ATTENTE', label: 'En attente' },
@@ -83,12 +84,15 @@ function DetailVerification({ prestataire, onDecision }) {
         spacing={1.5}
         sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 2 }}
       >
-        <Box>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
+          <UserAvatar photo={prestataire.photo} nom={prestataire.nom} size={48} />
+          <Box sx={{ minWidth: 0 }}>
           <Typography variant="h6">{prestataire.nom}</Typography>
           <Typography variant="body2" color="text.secondary">
             @{prestataire.username} · {prestataire.ville || 'Ville non renseignée'}
           </Typography>
-        </Box>
+          </Box>
+        </Stack>
         <Chip size="small" {...CHIPS[prestataire.statut_validation]} variant="outlined" />
       </Stack>
 
@@ -275,7 +279,9 @@ export default function VerificationsAdminContainer() {
                 }}
               >
                 <CardActionArea onClick={() => setSelectionId(p.id)}>
-                  <CardContent sx={{ py: 1.75 }}>
+                  <CardContent sx={{ py: 1.75, display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                    <UserAvatar photo={p.photo} nom={p.nom} size={36} />
+                    <Box sx={{ minWidth: 0 }}>
                     <Typography variant="subtitle2" noWrap>
                       {p.nom}
                     </Typography>
@@ -285,6 +291,7 @@ export default function VerificationsAdminContainer() {
                     <Typography variant="caption" color="text.secondary">
                       Soumis le {formatDateTime(p.date_soumission)}
                     </Typography>
+                    </Box>
                   </CardContent>
                 </CardActionArea>
               </Card>

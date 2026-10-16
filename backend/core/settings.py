@@ -154,6 +154,10 @@ PRIVATE_MEDIA_ROOT = BASE_DIR / 'private_media'
 DOCUMENT_IDENTITE_EXTENSIONS = ('jpg', 'jpeg', 'png', 'webp')
 DOCUMENT_IDENTITE_TAILLE_MAX = 5 * 1024 * 1024  # 5 Mo
 
+# Photos de profil : publiques (servies depuis MEDIA_URL), recadrées en carré
+PHOTO_PROFIL_EXTENSIONS = ('jpg', 'jpeg', 'png', 'webp')
+PHOTO_PROFIL_TAILLE_MAX = 5 * 1024 * 1024  # 5 Mo
+
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

@@ -36,8 +36,17 @@ async function resolveRoleAndProfile(claimRole) {
   return { role: claimRole || ROLES.ADMIN, profileId: null };
 }
 
-function buildUser({ username, userId, role, profileId }) {
-  return { username, userId, profileId, role };
+function buildUser({ username, userId, role, profileId, nom = null, photo = null }) {
+  return { username, userId, profileId, role, nom, photo };
+}
+
+/** Nom affiché et photo de profil de l'utilisateur connecté (null si indisponible). */
+async function fetchCompte() {
+  try {
+    return await usersApi.getMe();
+  } catch {
+    return null;
+  }
 }
 
 export function AuthProvider({ children }) {
@@ -61,20 +70,32 @@ export function AuthProvider({ children }) {
     }
 
     if (user) {
-      setLoading(false);
+      fetchCompte()
+        .then((compte) => {
+          if (!compte) return;
+          setUser((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev, username: compte.username, nom: compte.nom, photo: compte.photo };
+            localStorage.setItem('user', JSON.stringify(next));
+            return next;
+          });
+        })
+        .finally(() => setLoading(false));
       return;
     }
 
     const payload = decodeJwt(access);
     const userId = payload?.user_id != null ? Number(payload.user_id) : null;
 
-    resolveRoleAndProfile(payload?.role)
-      .then(({ role, profileId }) => {
+    Promise.all([resolveRoleAndProfile(payload?.role), fetchCompte()])
+      .then(([{ role, profileId }, compte]) => {
         const rebuiltUser = buildUser({
-          username: payload?.username,
+          username: compte?.username ?? payload?.username,
           userId,
           role,
           profileId,
+          nom: compte?.nom,
+          photo: compte?.photo,
         });
         localStorage.setItem('user', JSON.stringify(rebuiltUser));
         setUser(rebuiltUser);
@@ -90,12 +111,17 @@ export function AuthProvider({ children }) {
 
     const payload = decodeJwt(access);
     const userId = payload?.user_id != null ? Number(payload.user_id) : null;
-    const { role, profileId } = await resolveRoleAndProfile(payload?.role);
+    const [{ role, profileId }, compte] = await Promise.all([
+      resolveRoleAndProfile(payload?.role),
+      fetchCompte(),
+    ]);
     const nextUser = buildUser({
-      username: payload?.username ?? username,
+      username: compte?.username ?? payload?.username ?? username,
       userId,
       role,
       profileId,
+      nom: compte?.nom,
+      photo: compte?.photo,
     });
 
     localStorage.setItem('user', JSON.stringify(nextUser));
@@ -110,6 +136,16 @@ export function AuthProvider({ children }) {
     },
     [login],
   );
+
+  /** Met à jour l'utilisateur connecté (ex. nouvelle photo de profil). */
+  const updateUser = useCallback((changes) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...changes };
+      localStorage.setItem('user', JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('access');
@@ -126,6 +162,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

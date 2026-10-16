@@ -1,6 +1,5 @@
 import { Link as RouterLink } from 'react-router-dom'
 import {
-  Avatar,
   Badge,
   Box,
   Button,
@@ -9,8 +8,6 @@ import {
   Rating,
   Stack,
   Typography,
-  alpha,
-  useTheme,
 } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CloseIcon from '@mui/icons-material/Close'
@@ -20,15 +17,13 @@ import StatusChip from '../../components/StatusChip'
 import VerifiedBadge from '../../components/VerifiedBadge'
 import BudgetIndicator from '../../components/BudgetIndicator'
 import { formatAriary, formatDate } from '../../utils/format'
+import UserAvatar from '../../components/UserAvatar'
 
 function PrestataireEntete({ info, prestataireId }) {
-  const theme = useTheme()
   const nom = info?.nom || `Prestataire #${prestataireId}`
   return (
     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
-      <Avatar sx={{ width: 44, height: 44, bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark' }}>
-        {nom[0]?.toUpperCase()}
-      </Avatar>
+      <UserAvatar photo={info?.photo} nom={nom} size={48} />
       <Box sx={{ minWidth: 0 }}>
         <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
           <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>

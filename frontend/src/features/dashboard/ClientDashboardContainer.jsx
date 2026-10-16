@@ -18,6 +18,7 @@ import StatusChip from '../../components/StatusChip'
 import DashboardGrid from './DashboardGrid'
 import StatusDonutChart from './StatusDonutChart'
 import MonthlyBarChart from './MonthlyBarChart'
+import UserAvatar from '../../components/UserAvatar'
 
 export default function ClientDashboardContainer() {
   const navigate = useNavigate()
@@ -79,6 +80,7 @@ export default function ClientDashboardContainer() {
                 onClick={() => navigate(`/client/missions/${mission.id}`)}
                 sx={{ borderRadius: 2, px: 1 }}
               >
+                <UserAvatar photo={mission.prestataire_photo} nom={mission.prestataire} size={32} sx={{ mr: 1.5 }} />
                 <ListItemText
                   primary={mission.titre}
                   secondary={`${mission.prestataire} · terminée le ${formatDate(mission.date_fin)}`}

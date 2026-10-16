@@ -49,3 +49,27 @@ export function envoyerDocument({ typeDocument, fichier }, onProgress) {
     })
     .then((res) => res.data)
 }
+
+/** GET /api/users/me/ : compte de l'utilisateur connecté (nom, photo...) */
+export function getMe() {
+  return axiosClient.get('/users/me/').then((res) => res.data)
+}
+
+/** POST multipart /api/users/me/photo/ : envoie ou remplace sa photo de profil */
+export function envoyerPhoto(fichier, onProgress) {
+  const formData = new FormData()
+  formData.append('photo', fichier)
+  return axiosClient
+    .post('/users/me/photo/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (event) => {
+        if (onProgress && event.total) onProgress(Math.round((event.loaded / event.total) * 100))
+      },
+    })
+    .then((res) => res.data)
+}
+
+/** DELETE /api/users/me/photo/ */
+export function supprimerPhoto() {
+  return axiosClient.delete('/users/me/photo/').then((res) => res.data)
+}

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Avatar,
   Badge,
   Box,
   List,
@@ -23,6 +22,7 @@ import VerifiedBadge from '../../components/VerifiedBadge'
 import { useAuth } from '../../auth/useAuth'
 import { formatJourRelatif } from '../../utils/format'
 import ChatThread from './ChatThread'
+import UserAvatar from '../../components/UserAvatar'
 
 const POLLING_LISTE_MS = 10000
 
@@ -41,6 +41,11 @@ function ConversationItem({ conversation, active, readOnly, onClick }) {
       ? conversation.client.nom
       : conversation.prestataire.nom
   const nonLus = conversation.non_lus || 0
+  const photo = readOnly
+    ? conversation.client.photo
+    : conversation.mon_role === 'PRESTATAIRE'
+      ? conversation.client.photo
+      : conversation.prestataire.photo
 
   return (
     <ListItemButton
@@ -57,9 +62,7 @@ function ConversationItem({ conversation, active, readOnly, onClick }) {
       }}
     >
       <Badge color="error" variant="dot" invisible={nonLus === 0} overlap="circular">
-        <Avatar sx={{ width: 40, height: 40, bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark', fontSize: '0.9rem' }}>
-          {titre?.[0]?.toUpperCase()}
-        </Avatar>
+        <UserAvatar photo={photo} nom={titre} size={42} />
       </Badge>
       <Box sx={{ minWidth: 0, flexGrow: 1 }}>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

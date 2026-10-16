@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  Avatar,
   Box,
   Chip,
   IconButton,
@@ -22,8 +21,6 @@ import {
   Tabs,
   TextField,
   Typography,
-  alpha,
-  useTheme,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
@@ -40,6 +37,7 @@ import VerifiedBadge from '../../../components/VerifiedBadge'
 import { formatDate } from '../../../utils/format'
 import { VERIFICATION, statutVerification } from '../../../utils/verification'
 import useCompteActions from './useCompteActions'
+import UserAvatar from '../../../components/UserAvatar'
 
 const ROLES = [
   { value: 'CLIENT', label: 'Clients' },
@@ -62,7 +60,6 @@ export function VerificationChip({ utilisateur }) {
 }
 
 export default function UtilisateursAdminContainer() {
-  const theme = useTheme()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const role = searchParams.get('role') === 'PRESTATAIRE' ? 'PRESTATAIRE' : 'CLIENT'
@@ -220,14 +217,7 @@ export default function UtilisateursAdminContainer() {
                   >
                     <TableCell>
                       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                        <Avatar
-                          sx={{
-                            width: 32, height: 32, fontSize: '0.8rem',
-                            bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark',
-                          }}
-                        >
-                          {u.nom?.[0]?.toUpperCase()}
-                        </Avatar>
+                        <UserAvatar photo={u.photo} nom={u.nom} size={34} />
                         <Box sx={{ minWidth: 0 }}>
                           <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                             {u.nom}

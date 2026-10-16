@@ -12,6 +12,14 @@ def nom_affiche(utilisateur):
     return nom or utilisateur.username
 
 
+def photo_url(utilisateur):
+    """Chemin public de la photo de profil (ex. /media/photos/x.jpg), ou None."""
+    if utilisateur is None or getattr(utilisateur, 'date_suppression', None):
+        return None
+    photo = getattr(utilisateur, 'photo', None)
+    return photo.url if photo else None
+
+
 def stats_missions(queryset_missions):
     """Compteurs de missions par statut, à partir d'un queryset de Mission."""
     from missions.models import Mission
@@ -42,6 +50,7 @@ def resume_prestataire(prestataire):
     return {
         'id': prestataire.id,
         'nom': nom_affiche(prestataire.utilisateur),
+        'photo': photo_url(prestataire.utilisateur),
         'ville': prestataire.ville,
         'annee_experience': prestataire.annee_experience,
         'disponible': prestataire.disponible,

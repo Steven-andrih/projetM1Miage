@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Snackbar } from '@mui/material';
+import { Alert, Paper, Snackbar } from '@mui/material';
 import * as usersApi from '../../api/users.api';
 import PageHeader from '../../components/PageHeader';
+import ProfilePhotoEditor from '../../components/ProfilePhotoEditor';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import ClientProfileView from './ClientProfileView';
@@ -69,6 +70,9 @@ export default function ClientProfileContainer() {
       {error && (
         <ErrorMessage message="Impossible de charger ou enregistrer votre profil." />
       )}
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 3, maxWidth: 560 }}>
+        <ProfilePhotoEditor />
+      </Paper>
       <ClientProfileView
         form={form}
         onChange={handleChange}

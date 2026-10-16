@@ -35,6 +35,7 @@ import StatusDonutChart from './StatusDonutChart'
 import MonthlyBarChart from './MonthlyBarChart'
 import { formatAriary, formatDate } from '../../utils/format'
 import { VERIFICATION, statutVerification } from '../../utils/verification'
+import UserAvatar from '../../components/UserAvatar'
 
 const ETAPES_COMPLETUDE = [
   { cle: 'description', label: 'Ajouter une description', to: '/prestataire/profil' },
@@ -112,8 +113,9 @@ function DerniersAvisCard({ avis }) {
         <Stack spacing={2} divider={<Box sx={{ borderTop: '1px solid', borderColor: 'divider' }} />}>
           {avis.map((a) => (
             <Box key={a.id}>
-              <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                <Rating value={a.note} readOnly size="small" />
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <UserAvatar photo={a.client_photo} nom={a.client} size={28} />
+                <Rating value={a.note} readOnly size="small" sx={{ flexGrow: 1 }} />
                 <Typography variant="caption" color="text.secondary">
                   {formatDate(a.date_creation)}
                 </Typography>

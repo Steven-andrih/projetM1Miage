@@ -2,7 +2,6 @@ import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } f
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   CircularProgress,
@@ -30,6 +29,7 @@ import { useToast } from '../../components/ToastProvider'
 import useNotifications from '../../hooks/useNotifications'
 import { formatAriary, formatHeure } from '../../utils/format'
 import TarifDialog from './TarifDialog'
+import UserAvatar from '../../components/UserAvatar'
 
 const POLLING_MS = 4000
 
@@ -72,7 +72,9 @@ function Bulle({ message }) {
 
   const moi = message.est_moi
   return (
-    <Stack sx={{ alignItems: moi ? 'flex-end' : 'flex-start', my: 0.5 }}>
+    <Stack direction="row" spacing={1} sx={{ justifyContent: moi ? 'flex-end' : 'flex-start', alignItems: 'flex-end', my: 0.5 }}>
+      {!moi && <UserAvatar photo={message.auteur_photo} nom={message.auteur_nom} size={28} />}
+    <Stack sx={{ alignItems: moi ? 'flex-end' : 'flex-start', maxWidth: '100%', minWidth: 0 }}>
       {!moi && message.auteur_nom && (
         <Typography variant="caption" color="text.secondary" sx={{ ml: 1.5, mb: 0.25 }}>
           {message.auteur_nom}
@@ -103,6 +105,7 @@ function Bulle({ message }) {
           {formatHeure(message.date_envoi)}
         </Typography>
       </Box>
+    </Stack>
     </Stack>
   )
 }
@@ -266,9 +269,11 @@ export default function ChatThread({ conversationId, onBack, readOnly = false, o
               <ArrowBackIcon fontSize="small" />
             </IconButton>
           )}
-          <Avatar sx={{ width: 38, height: 38, bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.dark', fontSize: '0.9rem' }}>
-            {(readOnly ? client.nom : interlocuteur.nom)?.[0]?.toUpperCase()}
-          </Avatar>
+          <UserAvatar
+            photo={readOnly ? client.photo : interlocuteur.photo}
+            nom={readOnly ? client.nom : interlocuteur.nom}
+            size={40}
+          />
           <Box sx={{ minWidth: 0, flexGrow: 1 }}>
             <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
               <Typography variant="subtitle2" noWrap>

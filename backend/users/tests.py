@@ -1,4 +1,5 @@
 import io
+import os
 import shutil
 import tempfile
 from datetime import date
@@ -214,3 +215,64 @@ class GestionUtilisateursTests(BaseTestCase):
         self.assertEqual(donnees['nom'], 'Tojo')
         self.assertFalse(donnees['verifie'])
         self.assertNotIn('email', donnees)
+
+
+class PhotoProfilTests(BaseTestCase):
+    URL = '/api/users/me/photo/'
+
+    def setUp(self):
+        super().setUp()
+        self.media = tempfile.mkdtemp()
+        self.override = self.settings(MEDIA_ROOT=self.media)
+        self.override.enable()
+
+    def tearDown(self):
+        self.override.disable()
+        shutil.rmtree(self.media, ignore_errors=True)
+        super().tearDown()
+
+    def envoyer(self, utilisateur, taille=(800, 500)):
+        self.connecter(utilisateur)
+        tampon = io.BytesIO()
+        Image.new('RGBA', taille, (200, 80, 80, 255)).save(tampon, format='PNG')
+        fichier = SimpleUploadedFile('moi.png', tampon.getvalue(), content_type='image/png')
+        return self.client.post(self.URL, {'photo': fichier}, format='multipart')
+
+    def test_chaque_role_peut_envoyer_une_photo_recadree(self):
+        for utilisateur in (self.admin, self.client_user, self.presta_user):
+            reponse = self.envoyer(utilisateur)
+            self.assertEqual(reponse.status_code, 201, reponse.data)
+            self.assertTrue(reponse.data['photo'].startswith('/media/photos/'))
+            utilisateur.refresh_from_db()
+            with Image.open(utilisateur.photo.path) as image:
+                self.assertEqual(image.size, (400, 400))
+                self.assertEqual(image.format, 'JPEG')
+
+    def test_photo_visible_par_les_autres(self):
+        photo = self.envoyer(self.presta_user).data['photo']
+        self.connecter(self.client_user)
+        proposition = self.client.get('/api/propositions/').data[0]
+        self.assertEqual(proposition['prestataire_info']['photo'], photo)
+        self.assertEqual(self.client.get(f'/api/users/prestataires/{self.presta.id}/').data['photo'], photo)
+        self.connecter(self.admin)
+        utilisateurs = self.client.get('/api/admin/utilisateurs/?role=PRESTATAIRE').data
+        self.assertIn(photo, [u['photo'] for u in utilisateurs])
+
+    def test_remplacement_supprime_l_ancienne_et_suppression(self):
+        self.envoyer(self.client_user)
+        self.client_user.refresh_from_db()
+        ancien_chemin = self.client_user.photo.path
+        self.envoyer(self.client_user)
+        self.assertFalse(os.path.exists(ancien_chemin))
+
+        reponse = self.client.delete(self.URL)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertIsNone(reponse.data['photo'])
+        self.assertIsNone(self.client.get('/api/users/me/').data['photo'])
+
+    def test_format_refuse(self):
+        self.connecter(self.client_user)
+        faux = SimpleUploadedFile('moi.gif', b'GIF89a', content_type='image/gif')
+        self.assertEqual(self.client.post(self.URL, {'photo': faux}, format='multipart').status_code, 400)
+        self.client.force_authenticate(user=None)
+        self.assertEqual(self.client.post(self.URL, {'photo': image_png()}, format='multipart').status_code, 401)

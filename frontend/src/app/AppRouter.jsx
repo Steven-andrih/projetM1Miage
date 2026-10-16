@@ -179,8 +179,6 @@ export default function AppRouter() {
                 path="/admin/verifications"
                 element={<VerificationsAdminContainer />}
               />
-              <Route path="/admin/messages" element={<MessagerieContainer />} />
-              <Route path="/admin/messages/:id" element={<MessagerieContainer />} />
             </Route>
           </Route>
         </Route>

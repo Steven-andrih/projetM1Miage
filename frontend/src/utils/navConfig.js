@@ -41,7 +41,6 @@ export const NAV_ITEMS = {
       icon: FactCheckOutlinedIcon,
       badge: 'verificationsEnAttente',
     },
-    { label: 'Messages', path: '/admin/messages', icon: ChatBubbleOutlineIcon },
     { label: 'Catégories', path: '/admin/categories', icon: CategoryOutlinedIcon },
     { label: 'Services', path: '/admin/services', icon: ListAltOutlinedIcon },
   ],

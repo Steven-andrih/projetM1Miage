@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Client, Prestataire
+from .photos import PhotoProfilSerializer, preparer_photo
 from .permissions import IsPrestataireRole
 from .serializers import (
     ClientProfileSerializer,
@@ -20,7 +21,7 @@ from .serializers import (
     avis_prestataire,
     services_prestataire,
 )
-from .utils import nom_affiche, note_prestataire, stats_missions
+from .utils import nom_affiche, note_prestataire, photo_url, stats_missions
 
 
 def reponse_document(prestataire):
@@ -36,6 +37,57 @@ def reponse_document(prestataire):
     reponse['Cache-Control'] = 'private, no-store'
     reponse['X-Content-Type-Options'] = 'nosniff'
     return reponse
+
+
+def donnees_compte(utilisateur):
+    return {
+        'id': utilisateur.id,
+        'username': utilisateur.username,
+        'first_name': utilisateur.first_name,
+        'last_name': utilisateur.last_name,
+        'nom': nom_affiche(utilisateur),
+        'email': utilisateur.email,
+        'telephone': utilisateur.telephone,
+        'role': utilisateur.role,
+        'photo': photo_url(utilisateur),
+    }
+
+
+class MeView(APIView):
+    """Compte de l'utilisateur connecté, quel que soit son rôle."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response(donnees_compte(request.user))
+
+
+class MaPhotoView(APIView):
+    """
+    POST   : envoie ou remplace sa photo de profil (multipart : photo).
+    DELETE : retire sa photo de profil.
+    La photo est publique : visible par tous les utilisateurs, partout dans l'application.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        serializer = PhotoProfilSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        utilisateur = request.user
+        nom, contenu = preparer_photo(serializer.validated_data['photo'], utilisateur)
+        ancienne = utilisateur.photo.name if utilisateur.photo else None
+        utilisateur.photo.save(nom, contenu, save=True)
+        if ancienne:
+            utilisateur.photo.storage.delete(ancienne)
+        return Response(donnees_compte(utilisateur), status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        utilisateur = request.user
+        if utilisateur.photo:
+            utilisateur.photo.delete(save=True)
+        return Response(donnees_compte(utilisateur))
 
 
 class PrestataireCarteListView(generics.ListAPIView):
@@ -130,6 +182,7 @@ class PrestatairePublicView(APIView):
         return Response({
             'id': prestataire.id,
             'nom': nom_affiche(prestataire.utilisateur),
+            'photo': photo_url(prestataire.utilisateur),
             'ville': prestataire.ville,
             'description': prestataire.description,
             'annee_experience': prestataire.annee_experience,
