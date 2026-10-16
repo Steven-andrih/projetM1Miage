@@ -550,6 +550,30 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # Vérification d'identité : images de démonstration clairement fictives
     # ------------------------------------------------------------------
+    _police_unicode = False
+
+    def _police(self, taille):
+        # Police TrueType du système si disponible (accents), sinon police par défaut de Pillow
+        for nom in ("arial.ttf", "segoeui.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf"):
+            try:
+                police = ImageFont.truetype(nom, taille)
+                self._police_unicode = True
+                return police
+            except OSError:
+                continue
+        try:
+            return ImageFont.load_default(size=taille)
+        except TypeError:
+            return ImageFont.load_default()
+
+    @staticmethod
+    def _sans_accents(texte):
+        import unicodedata
+        return "".join(c for c in unicodedata.normalize("NFD", texte) if unicodedata.category(c) != "Mn")
+
+    def _texte(self, texte):
+        return texte if self._police_unicode else self._sans_accents(texte)
+
     def _image_specimen(self, nom, type_document):
         largeur, hauteur = 856, 540
         image = Image.new("RGB", (largeur, hauteur), (236, 241, 248))
@@ -557,22 +581,21 @@ class Command(BaseCommand):
         for y in range(hauteur):
             teinte = int(236 - 40 * y / hauteur)
             draw.line([(0, y), (largeur, y)], fill=(teinte, teinte + 5, 248))
-        try:
-            grande = ImageFont.load_default(size=40)
-            moyenne = ImageFont.load_default(size=26)
-            petite = ImageFont.load_default(size=20)
-        except TypeError:
-            grande = moyenne = petite = ImageFont.load_default()
+        grande, moyenne, petite = (self._police(t) for t in (40, 26, 20))
+        if not self._police_unicode:
+            # Police par défaut sans accents : on retire les diacritiques
+            nom = self._sans_accents(nom)
+            type_document = self._sans_accents(type_document)
         draw.rounded_rectangle([24, 24, largeur - 24, hauteur - 24], radius=28, outline=(74, 112, 169), width=4)
         draw.rounded_rectangle([60, 150, 260, 400], radius=18, fill=(200, 212, 230))
         draw.ellipse([115, 185, 205, 275], fill=(150, 170, 200))
         draw.rounded_rectangle([95, 285, 225, 380], radius=40, fill=(150, 170, 200))
-        draw.text((60, 60), "DOCUMENT FICTIF DE DÉMONSTRATION", font=moyenne, fill=(74, 112, 169))
+        draw.text((60, 60), self._texte("DOCUMENT FICTIF DE DÉMONSTRATION"), font=moyenne, fill=(74, 112, 169))
         draw.text((300, 170), type_document, font=petite, fill=(90, 100, 120))
         draw.text((300, 205), nom.upper(), font=grande, fill=(27, 36, 48))
         draw.text((300, 270), "N° 000 000 000 000", font=moyenne, fill=(60, 70, 90))
-        draw.text((300, 320), "Données générées par le seed", font=petite, fill=(90, 100, 120))
-        draw.text((210, 440), "SPÉCIMEN - SANS VALEUR", font=grande, fill=(209, 72, 77))
+        draw.text((300, 320), self._texte("Données générées par le seed"), font=petite, fill=(90, 100, 120))
+        draw.text((210, 440), self._texte("SPÉCIMEN - SANS VALEUR"), font=grande, fill=(209, 72, 77))
         tampon = io.BytesIO()
         image.save(tampon, format="PNG")
         return ContentFile(tampon.getvalue())
