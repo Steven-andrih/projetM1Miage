@@ -3,6 +3,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOnOutlined';
 import EventIcon from '@mui/icons-material/EventOutlined';
 import PaidIcon from '@mui/icons-material/PaidOutlined';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import { formatAriaryRange } from '../../utils/format';
 import StatusChip from '../../components/StatusChip';
 
 function InfoRow({ icon, label, value }) {
@@ -11,15 +12,14 @@ function InfoRow({ icon, label, value }) {
     <Stack
       direction="row"
       spacing={1.5}
-      alignItems="center"
-      sx={{ flex: '1 1 220px' }}
+      sx={{ alignItems: 'center', flex: '1 1 220px' }}
     >
       {icon}
       <Box>
-        <Typography variant="caption" color="text.secondary" display="block">
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
           {label}
         </Typography>
-        <Typography variant="body2" fontWeight={500}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
           {value}
         </Typography>
       </Box>
@@ -28,14 +28,7 @@ function InfoRow({ icon, label, value }) {
 }
 
 export default function DemandeReadOnlyInfo({ demande }) {
-  const budget =
-    demande.budget_min || demande.budget_max
-      ? `${demande.budget_min ? Number(demande.budget_min).toLocaleString('fr-FR') : '?'} € - ${
-          demande.budget_max
-            ? Number(demande.budget_max).toLocaleString('fr-FR')
-            : '?'
-        } €`
-      : null;
+  const budget = formatAriaryRange(demande.budget_min, demande.budget_max);
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>

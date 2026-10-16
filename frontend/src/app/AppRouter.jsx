@@ -34,6 +34,13 @@ import ServicesAdminContainer from '../features/admin/ServicesAdminContainer';
 
 import CartePrestatairesContainer from '../features/carte/CartePrestatairesContainer';
 
+import MessagerieContainer from '../features/messagerie/MessagerieContainer';
+import VerificationContainer from '../features/verification/VerificationContainer';
+import PrestatairePublicContainer from '../features/prestataires/PrestatairePublicContainer';
+import UtilisateursAdminContainer from '../features/admin/utilisateurs/UtilisateursAdminContainer';
+import UtilisateurDetailAdminContainer from '../features/admin/utilisateurs/UtilisateurDetailAdminContainer';
+import VerificationsAdminContainer from '../features/admin/verifications/VerificationsAdminContainer';
+
 import NotFoundPage from '../components/NotFoundPage';
 
 function HomeRedirect() {
@@ -94,6 +101,12 @@ export default function AppRouter() {
                 path="/client/missions/:id"
                 element={<MissionDetailContainer />}
               />
+              <Route path="/client/messages" element={<MessagerieContainer />} />
+              <Route path="/client/messages/:id" element={<MessagerieContainer />} />
+              <Route
+                path="/client/prestataires/:id"
+                element={<PrestatairePublicContainer />}
+              />
             </Route>
 
             {/* --- Espace Prestataire --- */}
@@ -132,6 +145,12 @@ export default function AppRouter() {
                 path="/prestataire/missions/:id"
                 element={<MissionDetailContainer />}
               />
+              <Route path="/prestataire/messages" element={<MessagerieContainer />} />
+              <Route path="/prestataire/messages/:id" element={<MessagerieContainer />} />
+              <Route
+                path="/prestataire/verification"
+                element={<VerificationContainer />}
+              />
             </Route>
 
             {/* --- Espace Admin --- */}
@@ -148,6 +167,20 @@ export default function AppRouter() {
                 path="/admin/services"
                 element={<ServicesAdminContainer />}
               />
+              <Route
+                path="/admin/utilisateurs"
+                element={<UtilisateursAdminContainer />}
+              />
+              <Route
+                path="/admin/utilisateurs/:id"
+                element={<UtilisateurDetailAdminContainer />}
+              />
+              <Route
+                path="/admin/verifications"
+                element={<VerificationsAdminContainer />}
+              />
+              <Route path="/admin/messages" element={<MessagerieContainer />} />
+              <Route path="/admin/messages/:id" element={<MessagerieContainer />} />
             </Route>
           </Route>
         </Route>

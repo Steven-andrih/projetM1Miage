@@ -26,8 +26,8 @@ export default function RecommendationCard({ recommandation }) {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-          <Typography variant="subtitle1" fontWeight={700}>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {getPrestataireLabel(recommandation)}
           </Typography>
           {scoreGlobal != null && (
@@ -50,7 +50,7 @@ export default function RecommendationCard({ recommandation }) {
             <Stack spacing={1}>
               {subScores.map((sub) => (
                 <Box key={sub.label}>
-                  <Stack direction="row" justifyContent="space-between">
+                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                     <Typography variant="caption" color="text.secondary">
                       {sub.label}
                     </Typography>

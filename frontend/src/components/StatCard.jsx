@@ -1,14 +1,22 @@
-import { Card, CardContent, Stack, Typography, alpha, useTheme } from '@mui/material'
+import { Card, CardActionArea, CardContent, Stack, Typography, alpha, useTheme } from '@mui/material'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import { useNavigate } from 'react-router-dom'
 
-export default function StatCard({ icon, label, value, color = 'primary.main' }) {
+/**
+ * Carte KPI. Avec `to` (route) ou `onClick`, la carte devient cliquable.
+ * `hint` : petite ligne d'aide sous le libellé.
+ */
+export default function StatCard({ icon, label, value, color = 'primary.main', hint, to, onClick, valueVariant = 'h4' }) {
   const theme = useTheme()
+  const navigate = useNavigate()
   const [paletteKey, shade = 'main'] = String(color).split('.')
   const resolved = theme.palette[paletteKey]?.[shade] || theme.palette.primary.main
+  const clickable = Boolean(to || onClick)
 
-  return (
-    <Card variant="outlined" sx={{ height: '100%' }}>
-      <CardContent>
-        <Stack spacing={2}>
+  const content = (
+    <CardContent>
+      <Stack spacing={2}>
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
           {icon && (
             <Stack
               sx={{
@@ -25,16 +33,47 @@ export default function StatCard({ icon, label, value, color = 'primary.main' })
               {icon}
             </Stack>
           )}
-          <Stack spacing={0.25}>
-            <Typography variant="h4" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-              {value}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-          </Stack>
+          {clickable && <ArrowForwardIcon sx={{ fontSize: 18, color: 'text.secondary' }} />}
         </Stack>
-      </CardContent>
+        <Stack spacing={0.25}>
+          <Typography
+            variant={valueVariant}
+            sx={{ fontVariantNumeric: 'tabular-nums', ...(valueVariant !== 'h4' && { color: resolved, fontWeight: 700 }) }}
+          >
+            {value}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+          {hint && (
+            <Typography variant="caption" sx={{ color: resolved, fontWeight: 600 }}>
+              {hint}
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+    </CardContent>
+  )
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        height: '100%',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        ...(clickable && { '&:hover': { borderColor: resolved, boxShadow: 3 } }),
+      }}
+    >
+      {clickable ? (
+        <CardActionArea
+          onClick={onClick || (() => navigate(to))}
+          sx={{ height: '100%', alignItems: 'stretch' }}
+        >
+          {content}
+        </CardActionArea>
+      ) : (
+        content
+      )}
     </Card>
   )
 }

@@ -24,3 +24,7 @@ export function deleteProposition(id) {
 export function acceptProposition(id) {
   return axiosClient.post(`/propositions/${id}/accepter/`).then((res) => res.data)
 }
+/** POST /api/propositions/{id}/refuser/ (client propriétaire de la demande) */
+export function refuseProposition(id) {
+  return axiosClient.post(`/propositions/${id}/refuser/`).then((res) => res.data)
+}

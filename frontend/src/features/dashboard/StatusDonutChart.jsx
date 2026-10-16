@@ -28,7 +28,7 @@ export default function StatusDonutChart({ counts, centerLabel = 'au total', hei
   }))
 
   return (
-    <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" spacing={2}>
+    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: 'center' }}>
       <Box sx={{ position: 'relative', flexShrink: 0 }}>
         <PieChart
           series={[
@@ -69,12 +69,12 @@ export default function StatusDonutChart({ counts, centerLabel = 'au total', hei
 
       <Stack spacing={1} sx={{ flexGrow: 1, width: '100%' }}>
         {data.map((item) => (
-          <Stack key={item.id} direction="row" alignItems="center" spacing={1.25}>
+          <Stack key={item.id} direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
             <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: item.color, flexShrink: 0 }} />
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
               {item.label}
             </Typography>
-            <Typography variant="body2" fontWeight={600} sx={{ fontVariantNumeric: 'tabular-nums' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
               {item.value}
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ width: 40, textAlign: 'right' }}>

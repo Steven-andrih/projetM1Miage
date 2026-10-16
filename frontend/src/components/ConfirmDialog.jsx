@@ -16,12 +16,16 @@ export default function ConfirmDialog({
   confirmLabel = 'Confirmer',
   confirmColor = 'primary',
   loading = false,
+  loadingLabel = 'En cours…',
+  confirmDisabled = false,
+  children,
 }) {
   return (
-    <Dialog open={open} onClose={onCancel}>
+    <Dialog open={open} onClose={loading ? undefined : onCancel} fullWidth maxWidth="xs">
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{message}</DialogContentText>
+        {message && <DialogContentText>{message}</DialogContentText>}
+        {children}
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} disabled={loading}>
@@ -31,9 +35,9 @@ export default function ConfirmDialog({
           onClick={onConfirm}
           color={confirmColor}
           variant="contained"
-          disabled={loading}
+          disabled={loading || confirmDisabled}
         >
-          {loading ? 'Suppression…' : confirmLabel}
+          {loading ? loadingLabel : confirmLabel}
         </Button>
       </DialogActions>
     </Dialog>

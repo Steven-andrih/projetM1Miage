@@ -6,9 +6,9 @@ import { buildMonthlyDataset } from '../../utils/chartUtils'
  * Courbe d'évolution mensuelle de l'activité (demandes créées, missions démarrées).
  * Props : demandes et missions = tableaux [{ mois: ISO, total: number }].
  */
-export default function EvolutionMensuelleChart({ demandes, missions, height = 300 }) {
+export default function EvolutionMensuelleChart({ demandes, missions, terminees, height = 300 }) {
   const theme = useTheme()
-  const dataset = buildMonthlyDataset({ demandes, missions })
+  const dataset = buildMonthlyDataset(terminees ? { demandes, missions, terminees } : { demandes, missions })
 
   if (dataset.length === 0) {
     return (
@@ -40,6 +40,17 @@ export default function EvolutionMensuelleChart({ demandes, missions, height = 3
           showMark: true,
           curve: 'monotoneX',
         },
+        ...(terminees
+          ? [
+              {
+                dataKey: 'terminees',
+                label: 'Missions terminées',
+                color: theme.palette.success.main,
+                showMark: true,
+                curve: 'monotoneX',
+              },
+            ]
+          : []),
       ]}
       grid={{ horizontal: true }}
       margin={{ left: 8, right: 16, top: 8, bottom: 8 }}

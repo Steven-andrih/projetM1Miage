@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import InboxIcon from '@mui/icons-material/Inbox';
 import StatusChip from '../../components/StatusChip';
+import { formatAriary } from '../../utils/format';
 
 export default function MesPropositionsView({
   propositions,
@@ -17,9 +18,8 @@ export default function MesPropositionsView({
   if (propositions.length === 0) {
     return (
       <Stack
-        alignItems="center"
         spacing={1.5}
-        sx={{ py: 10, color: 'text.secondary' }}
+        sx={{ alignItems: 'center', py: 10, color: 'text.secondary' }}
       >
         <InboxIcon sx={{ fontSize: 48, color: 'secondary.main' }} />
         <Typography variant="body1">
@@ -48,11 +48,10 @@ export default function MesPropositionsView({
               <CardContent>
                 <Stack
                   direction="row"
-                  justifyContent="space-between"
-                  alignItems="flex-start"
                   spacing={1}
+                  sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}
                 >
-                  <Typography variant="subtitle1" fontWeight={700}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     {demande?.titre || `Demande #${proposition.demande}`}
                   </Typography>
                   <StatusChip status={proposition.statut} />
@@ -72,9 +71,7 @@ export default function MesPropositionsView({
                 </Typography>
                 {proposition.tarif_propose && (
                   <Typography variant="body2" sx={{ mt: 1.5 }}>
-                    Tarif proposé :{' '}
-                    {Number(proposition.tarif_propose).toLocaleString('fr-FR')}{' '}
-                    €
+                    Tarif proposé : {formatAriary(proposition.tarif_propose)}
                   </Typography>
                 )}
               </CardContent>

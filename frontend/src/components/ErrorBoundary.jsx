@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component {
             p: 3,
           }}
         >
-          <Stack spacing={2} alignItems="center" sx={{ textAlign: 'center', maxWidth: 420 }}>
+          <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center', maxWidth: 420 }}>
             <ReportProblemIcon sx={{ fontSize: 56, color: 'secondary.main' }} />
             <Typography variant="h6">Une erreur inattendue est survenue</Typography>
             <Typography variant="body2" color="text.secondary">

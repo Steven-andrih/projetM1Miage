@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Box, Card, CardActionArea, CardContent, Paper, Stack, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, List, ListItemButton, ListItemIcon, ListItemText, Paper, Stack, Typography } from '@mui/material'
+import { formatDate } from '../../utils/format'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import ChatBubbleIcon from '@mui/icons-material/ChatBubble'
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import * as statistiquesApi from '../../api/statistiques.api'
 import PageHeader from '../../components/PageHeader'
 import LoadingSpinner from '../../components/LoadingSpinner'
@@ -45,8 +49,49 @@ export default function ClientDashboardContainer() {
           label="Propositions à traiter"
           value={data.propositions_en_attente_de_ma_decision ?? 0}
           color="secondary.main"
+          to={data.propositions_en_attente_de_ma_decision ? '/client/demandes' : undefined}
+        />
+        <StatCard
+          icon={<ChatBubbleIcon />}
+          label="Messages non lus"
+          value={data.messages_non_lus ?? 0}
+          color={data.messages_non_lus ? 'error.main' : 'primary.main'}
+          hint={data.messages_non_lus ? 'Ne ratez pas une réponse' : undefined}
+          to="/client/messages"
         />
       </DashboardGrid>
+
+      {data.missions_a_noter?.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 2.5, mb: 2.5 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+            <RateReviewOutlinedIcon sx={{ color: 'warning.main' }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              Missions à noter ({data.nb_missions_a_noter})
+            </Typography>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Votre avis aide les autres clients à choisir le bon prestataire.
+          </Typography>
+          <List dense disablePadding>
+            {data.missions_a_noter.map((mission) => (
+              <ListItemButton
+                key={mission.id}
+                onClick={() => navigate(`/client/missions/${mission.id}`)}
+                sx={{ borderRadius: 2, px: 1 }}
+              >
+                <ListItemText
+                  primary={mission.titre}
+                  secondary={`${mission.prestataire} · terminée le ${formatDate(mission.date_fin)}`}
+                  slotProps={{ primary: { variant: 'body2', sx: { fontWeight: 600 } } }}
+                />
+                <ListItemIcon sx={{ minWidth: 0 }}>
+                  <ChevronRightIcon fontSize="small" />
+                </ListItemIcon>
+              </ListItemButton>
+            ))}
+          </List>
+        </Paper>
+      )}
 
       <Box
         sx={{
@@ -57,14 +102,14 @@ export default function ClientDashboardContainer() {
         }}
       >
         <Paper variant="outlined" sx={{ p: 2.5 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
             Mes demandes par statut
           </Typography>
           <StatusDonutChart counts={data.demandes_par_statut} centerLabel="demandes" />
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 2.5 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
             Demandes créées par mois
           </Typography>
           <MonthlyBarChart items={data.evolution_mensuelle} label="Demandes" />
@@ -82,8 +127,8 @@ export default function ClientDashboardContainer() {
             <Card variant="outlined" key={demande.id}>
               <CardActionArea onClick={() => navigate(`/client/demandes/${demande.id}`)}>
                 <CardContent>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-                    <Typography variant="subtitle2" fontWeight={600} noWrap>
+                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
                       {demande.titre}
                     </Typography>
                     <StatusChip status={demande.statut} />

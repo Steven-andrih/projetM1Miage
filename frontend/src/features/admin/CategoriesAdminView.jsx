@@ -32,7 +32,7 @@ export default function CategoriesAdminView({
 }) {
   return (
     <>
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 2 }}>
         <Button variant="contained" startIcon={<AddIcon />} onClick={onOpenCreate}>
           Nouvelle catégorie
         </Button>
@@ -45,7 +45,7 @@ export default function CategoriesAdminView({
           {categories.map((cat) => (
             <Card variant="outlined" key={cat.id}>
               <CardContent>
-                <Typography variant="subtitle1" fontWeight={600}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                   {cat.nom}
                 </Typography>
                 {cat.description && (

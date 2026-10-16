@@ -18,6 +18,7 @@ const EMPTY_FORM = {
 export default function PrestataireProfileContainer() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [statutValidation, setStatutValidation] = useState('');
+  const [aDocument, setADocument] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,6 +37,7 @@ export default function PrestataireProfileContainer() {
           disponible: Boolean(data.disponible),
         });
         setStatutValidation(data.statut_validation ?? '');
+        setADocument(Boolean(data.a_document));
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -91,6 +93,7 @@ export default function PrestataireProfileContainer() {
       <PrestataireProfileView
         form={form}
         statutValidation={statutValidation}
+        aDocument={aDocument}
         onChange={handleChange}
         onToggle={handleToggle}
         onLocate={handleLocate}

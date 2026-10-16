@@ -20,11 +20,11 @@ export default function MiniBarList({ items, labelKey, valueKey, emptyLabel = '‚
         const label = item[labelKey] || 'Non renseign√©'
         return (
           <Box key={idx}>
-            <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 0.75 }}>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'baseline', mb: 0.75 }}>
               <Typography variant="body2" noWrap sx={{ pr: 2 }}>
                 {label}
               </Typography>
-              <Typography variant="body2" fontWeight={600} sx={{ fontVariantNumeric: 'tabular-nums' }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                 {value}
               </Typography>
             </Stack>

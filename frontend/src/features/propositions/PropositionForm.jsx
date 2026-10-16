@@ -44,7 +44,7 @@ export default function PropositionForm({ onSubmit, submitting }) {
         />
 
         <TextField
-          label="Tarif proposé (€)"
+          label="Tarif proposé (Ar)"
           name="tarif_propose"
           type="number"
           value={form.tarif_propose}

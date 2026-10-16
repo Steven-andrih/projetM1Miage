@@ -47,8 +47,8 @@ export default function CartePrestatairesView({ prestataires }) {
                   '&:hover': { bgcolor: 'background.default' },
                 }}
               >
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="subtitle2" fontWeight={600}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     {p.username}
                   </Typography>
                   <Chip

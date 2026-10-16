@@ -24,3 +24,28 @@ export function updatePrestataireProfile(data) {
 export function getPrestatairesCarte() {
   return axiosClient.get('/users/prestataires/carte/').then((res) => res.data)
 }
+
+/** GET /api/users/prestataires/{id}/ : profil public d'un prestataire */
+export function getPrestatairePublic(id) {
+  return axiosClient.get(`/users/prestataires/${id}/`).then((res) => res.data)
+}
+
+/** GET /api/users/prestataire/me/document/ : sa propre pièce d'identité, en Blob */
+export function getMonDocument() {
+  return axiosClient.get('/users/prestataire/me/document/', { responseType: 'blob' }).then((res) => res.data)
+}
+
+/** POST multipart /api/users/prestataire/me/document/ avec suivi de progression */
+export function envoyerDocument({ typeDocument, fichier }, onProgress) {
+  const formData = new FormData()
+  formData.append('type_document', typeDocument)
+  formData.append('document', fichier)
+  return axiosClient
+    .post('/users/prestataire/me/document/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (event) => {
+        if (onProgress && event.total) onProgress(Math.round((event.loaded / event.total) * 100))
+      },
+    })
+    .then((res) => res.data)
+}
