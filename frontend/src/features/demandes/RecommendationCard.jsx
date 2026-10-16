@@ -1,5 +1,7 @@
 import { Box, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material'
 import StarIcon from '@mui/icons-material/Star'
+import UserAvatar from '../../components/UserAvatar'
+import VerifiedBadge from '../../components/VerifiedBadge'
 
 function getSubScores(reco) {
   return [
@@ -12,6 +14,7 @@ function getSubScores(reco) {
 }
 
 function getPrestataireLabel(reco) {
+  if (reco.prestataire_nom) return reco.prestataire_nom
   if (reco.prestataire_username) return reco.prestataire_username
   if (reco.prestataire && typeof reco.prestataire === 'object') {
     return reco.prestataire.username || reco.prestataire.nom || `Prestataire #${reco.prestataire.id}`
@@ -26,10 +29,14 @@ export default function RecommendationCard({ recommandation }) {
   return (
     <Card variant="outlined">
       <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1}>
-          <Typography variant="subtitle1" fontWeight={700}>
-            {getPrestataireLabel(recommandation)}
-          </Typography>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+          <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', minWidth: 0 }}>
+            <UserAvatar photo={recommandation.prestataire_photo} nom={getPrestataireLabel(recommandation)} size={40} />
+            <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
+              {getPrestataireLabel(recommandation)}
+            </Typography>
+            {recommandation.prestataire_verifie && <VerifiedBadge compact />}
+          </Stack>
           {scoreGlobal != null && (
             <Chip
               icon={<StarIcon fontSize="small" />}
@@ -50,7 +57,7 @@ export default function RecommendationCard({ recommandation }) {
             <Stack spacing={1}>
               {subScores.map((sub) => (
                 <Box key={sub.label}>
-                  <Stack direction="row" justifyContent="space-between">
+                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                     <Typography variant="caption" color="text.secondary">
                       {sub.label}
                     </Typography>

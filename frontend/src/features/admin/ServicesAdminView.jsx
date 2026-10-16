@@ -38,7 +38,7 @@ export default function ServicesAdminView({
 
   return (
     <>
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 2 }}>
         <Button variant="contained" startIcon={<AddIcon />} onClick={onOpenCreate}>
           Nouveau service
         </Button>
@@ -51,8 +51,8 @@ export default function ServicesAdminView({
           {services.map((service) => (
             <Card variant="outlined" key={service.id}>
               <CardContent>
-                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-                  <Typography variant="subtitle1" fontWeight={600}>
+                <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                     {service.nom}
                   </Typography>
                   <Chip
@@ -61,7 +61,7 @@ export default function ServicesAdminView({
                     color={service.active ? 'success' : 'default'}
                   />
                 </Stack>
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
                   {getCategorieNom(service.categorie)}
                 </Typography>
                 {service.description && (
@@ -113,7 +113,7 @@ export default function ServicesAdminView({
                 minRows={2}
                 fullWidth
               />
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <Chip
                   label={form.active ? 'Actif' : 'Inactif'}
                   color={form.active ? 'success' : 'default'}

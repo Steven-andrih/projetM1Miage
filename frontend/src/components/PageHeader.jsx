@@ -13,12 +13,10 @@ export default function PageHeader({ title, subtitle, action, showBack = false, 
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
-      justifyContent="space-between"
-      alignItems={{ xs: 'flex-start', sm: 'center' }}
       spacing={2}
-      sx={{ mb: 4 }}
+      sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 4 }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
         {showBack && (
           <IconButton
             onClick={handleBack}

@@ -1,6 +1,10 @@
+import io
 import random
 from decimal import Decimal
 from datetime import timedelta
+
+from django.core.files.base import ContentFile
+from PIL import Image, ImageDraw, ImageFont
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -11,6 +15,7 @@ from demandes.models import Demande
 from propositions.models import Proposition
 from missions.models import Mission
 from avis.models import Avis
+from messagerie.models import Conversation, Message
 from recommandations.logic import calculer_recommandations
 
 DEMO_PASSWORD = "Demo1234!"
@@ -57,6 +62,8 @@ class Command(BaseCommand):
         propositions = self.seed_propositions(demandes, prestataires)
         missions = self.seed_missions(propositions)
         self.seed_avis(missions)
+        self.seed_verifications(prestataires)
+        self.seed_conversations(propositions)
         self.seed_recommandations(demandes)
 
         self.stdout.write(self.style.SUCCESS("Seed terminé avec succès."))
@@ -539,6 +546,135 @@ class Command(BaseCommand):
                 Avis.objects.filter(pk=avis.pk).update(date_creation=min(date_avis, self.now))
                 count += 1
         self.stdout.write(f"  {count} avis créés.")
+
+    # ------------------------------------------------------------------
+    # Vérification d'identité : images de démonstration clairement fictives
+    # ------------------------------------------------------------------
+    _police_unicode = False
+
+    def _police(self, taille):
+        # Police TrueType du système si disponible (accents), sinon police par défaut de Pillow
+        for nom in ("arial.ttf", "segoeui.ttf", "DejaVuSans.ttf", "LiberationSans-Regular.ttf"):
+            try:
+                police = ImageFont.truetype(nom, taille)
+                self._police_unicode = True
+                return police
+            except OSError:
+                continue
+        try:
+            return ImageFont.load_default(size=taille)
+        except TypeError:
+            return ImageFont.load_default()
+
+    @staticmethod
+    def _sans_accents(texte):
+        import unicodedata
+        return "".join(c for c in unicodedata.normalize("NFD", texte) if unicodedata.category(c) != "Mn")
+
+    def _texte(self, texte):
+        return texte if self._police_unicode else self._sans_accents(texte)
+
+    def _image_specimen(self, nom, type_document):
+        largeur, hauteur = 856, 540
+        image = Image.new("RGB", (largeur, hauteur), (236, 241, 248))
+        draw = ImageDraw.Draw(image)
+        for y in range(hauteur):
+            teinte = int(236 - 40 * y / hauteur)
+            draw.line([(0, y), (largeur, y)], fill=(teinte, teinte + 5, 248))
+        grande, moyenne, petite = (self._police(t) for t in (40, 26, 20))
+        if not self._police_unicode:
+            # Police par défaut sans accents : on retire les diacritiques
+            nom = self._sans_accents(nom)
+            type_document = self._sans_accents(type_document)
+        draw.rounded_rectangle([24, 24, largeur - 24, hauteur - 24], radius=28, outline=(74, 112, 169), width=4)
+        draw.rounded_rectangle([60, 150, 260, 400], radius=18, fill=(200, 212, 230))
+        draw.ellipse([115, 185, 205, 275], fill=(150, 170, 200))
+        draw.rounded_rectangle([95, 285, 225, 380], radius=40, fill=(150, 170, 200))
+        draw.text((60, 60), self._texte("DOCUMENT FICTIF DE DÉMONSTRATION"), font=moyenne, fill=(74, 112, 169))
+        draw.text((300, 170), type_document, font=petite, fill=(90, 100, 120))
+        draw.text((300, 205), nom.upper(), font=grande, fill=(27, 36, 48))
+        draw.text((300, 270), "N° 000 000 000 000", font=moyenne, fill=(60, 70, 90))
+        draw.text((300, 320), self._texte("Données générées par le seed"), font=petite, fill=(90, 100, 120))
+        draw.text((210, 440), self._texte("SPÉCIMEN - SANS VALEUR"), font=grande, fill=(209, 72, 77))
+        tampon = io.BytesIO()
+        image.save(tampon, format="PNG")
+        return ContentFile(tampon.getvalue())
+
+    def seed_verifications(self, prestataires):
+        """Les prestataires en attente ont envoyé un document ; un prestataire est refusé avec motif."""
+        S = Prestataire.StatutValidation
+        a_traiter = [p for p in prestataires if p.statut_validation == S.EN_ATTENTE]
+        refuse = next((p for p in prestataires if p.utilisateur.username == "presta_bako12"), None)
+        count = 0
+        for i, presta in enumerate(a_traiter + ([refuse] if refuse else [])):
+            if presta.document_identite:
+                if presta is refuse and presta.statut_validation != S.REFUSE:
+                    presta.statut_validation = S.REFUSE
+                    presta.date_validation = None
+                    presta.save()
+                continue
+            type_doc = [Prestataire.TypeDocument.CIN, Prestataire.TypeDocument.PASSEPORT][i % 2]
+            nom = f"{presta.utilisateur.first_name} {presta.utilisateur.last_name}"
+            presta.document_identite.save(
+                f"prestataire_{presta.pk}.png",
+                self._image_specimen(nom, Prestataire.TypeDocument(type_doc).label),
+                save=False,
+            )
+            presta.type_document = type_doc
+            presta.date_soumission = self.now - timedelta(days=random.randint(1, 6), hours=random.randint(0, 12))
+            if presta is refuse:
+                presta.statut_validation = S.REFUSE
+                presta.date_validation = None
+                presta.motif_refus = "Photo floue : les informations du document sont illisibles. Merci d'envoyer une image nette."
+            presta.save()
+            count += 1
+        self.stdout.write(f"  {count} pièces d'identité de démonstration ajoutées.")
+
+    # ------------------------------------------------------------------
+    # Messagerie : quelques conversations, dont des négociations de tarif
+    # ------------------------------------------------------------------
+    def seed_conversations(self, propositions):
+        P = Proposition.Statut
+        en_attente = [p for p in propositions if p.statut == P.EN_ATTENTE][:8]
+        acceptees = [p for p in propositions if p.statut == P.ACCEPTEE][-4:]
+        count = 0
+        for prop in en_attente + acceptees:
+            conversation, _ = Conversation.objects.get_or_create(proposition=prop)
+            if conversation.messages.exists():
+                continue
+            client = prop.demande.client.utilisateur
+            presta = prop.prestataire.utilisateur
+            debut = prop.date_proposition + timedelta(hours=random.randint(1, 6))
+            tarif = int(prop.tarif_propose)
+            nouveau = max(10000, tarif - random.choice([5000, 10000, 15000]))
+            echanges = [
+                (client, "NORMAL", "Bonjour, merci pour votre proposition. Le tarif me semble un peu élevé, est-il négociable ?"),
+                (presta, "NORMAL", f"Bonjour ! Je peux faire un geste et descendre à {nouveau:,} Ar si l'intervention est en semaine.".replace(",", " ")),
+                (client, "NORMAL", "Ça me convient, merci. Pouvez-vous mettre à jour la proposition ?"),
+            ]
+            if prop.statut == P.EN_ATTENTE and len(en_attente) and prop in en_attente[:4]:
+                echanges.append((None, "SYSTEME", f"Tarif modifié : {tarif:,} Ar → {nouveau:,} Ar".replace(",", " ")))
+                echanges.append((presta, "NORMAL", "C'est fait, le nouveau tarif est visible dans la proposition."))
+                Proposition.objects.filter(pk=prop.pk).update(tarif_propose=Decimal(nouveau))
+            if prop.statut == P.ACCEPTEE:
+                echanges.append((None, "SYSTEME", "Proposition acceptée par le client. La mission a démarré."))
+                echanges.append((presta, "NORMAL", "Merci pour votre confiance, je vous appelle la veille pour confirmer l'heure."))
+
+            date_msg = debut
+            for auteur, type_msg, contenu in echanges:
+                message = Message.objects.create(
+                    conversation=conversation, auteur=auteur, type=type_msg, contenu=contenu
+                )
+                Message.objects.filter(pk=message.pk).update(date_envoi=min(date_msg, self.now))
+                date_msg += timedelta(minutes=random.randint(5, 180))
+            # Le prestataire a tout lu ; le client a un dernier message non lu.
+            Conversation.objects.filter(pk=conversation.pk).update(
+                date_creation=debut,
+                dernier_lu_prestataire=min(date_msg, self.now),
+                dernier_lu_client=min(date_msg - timedelta(minutes=200), self.now),
+            )
+            count += 1
+        self.stdout.write(f"  {count} conversations créées.")
 
     def seed_recommandations(self, demandes):
         for demande in demandes:

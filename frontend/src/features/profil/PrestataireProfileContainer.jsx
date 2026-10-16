@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Snackbar } from '@mui/material';
+import { Alert, Paper, Snackbar } from '@mui/material';
 import * as usersApi from '../../api/users.api';
 import PageHeader from '../../components/PageHeader';
+import ProfilePhotoEditor from '../../components/ProfilePhotoEditor';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import PrestataireProfileView from './PrestataireProfileView';
@@ -18,6 +19,7 @@ const EMPTY_FORM = {
 export default function PrestataireProfileContainer() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [statutValidation, setStatutValidation] = useState('');
+  const [aDocument, setADocument] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,6 +38,7 @@ export default function PrestataireProfileContainer() {
           disponible: Boolean(data.disponible),
         });
         setStatutValidation(data.statut_validation ?? '');
+        setADocument(Boolean(data.a_document));
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
@@ -88,9 +91,13 @@ export default function PrestataireProfileContainer() {
       {error && (
         <ErrorMessage message="Impossible de charger ou enregistrer votre profil." />
       )}
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 3, maxWidth: 560 }}>
+        <ProfilePhotoEditor />
+      </Paper>
       <PrestataireProfileView
         form={form}
         statutValidation={statutValidation}
+        aDocument={aDocument}
         onChange={handleChange}
         onToggle={handleToggle}
         onLocate={handleLocate}

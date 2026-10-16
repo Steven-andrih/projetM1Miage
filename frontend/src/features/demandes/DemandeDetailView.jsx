@@ -7,17 +7,18 @@ import PaidIcon from '@mui/icons-material/PaidOutlined'
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh'
 import StatusChip from '../../components/StatusChip'
 import DemandeFormFields from './DemandeFormFields'
+import { formatAriaryRange } from '../../utils/format'
 
 function InfoRow({ icon, label, value }) {
   if (!value) return null
   return (
-    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: '1 1 220px' }}>
+    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flex: '1 1 220px' }}>
       {icon}
       <Box>
-        <Typography variant="caption" color="text.secondary" display="block">
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
           {label}
         </Typography>
-        <Typography variant="body2" fontWeight={500}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
           {value}
         </Typography>
       </Box>
@@ -71,17 +72,12 @@ export default function DemandeDetailView({
     )
   }
 
-  const budget =
-    demande.budget_min || demande.budget_max
-      ? `${demande.budget_min ? Number(demande.budget_min).toLocaleString('fr-FR') : '?'} € - ${
-          demande.budget_max ? Number(demande.budget_max).toLocaleString('fr-FR') : '?'
-        } €`
-      : null
+  const budget = formatAriaryRange(demande.budget_min, demande.budget_max)
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
       <Stack spacing={3}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1 }}>
           <StatusChip status={demande.statut} />
           {isOwner && (
             <Stack direction="row" spacing={1}>

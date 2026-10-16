@@ -17,9 +17,9 @@ class DemandeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role == Utilisateur.Role.ADMIN:
             return Demande.objects.all()
-        if user.role == Utilisateur.Role.CLIENT:
-            return Demande.objects.all()  # visibilité publique volontaire : un prestataire doit pouvoir parcourir les demandes ouvertes
-        return Demande.objects.all()
+        # Visibilité publique volontaire (un prestataire parcourt les demandes ouvertes),
+        # sauf les demandes des comptes désactivés, masquées aux autres utilisateurs.
+        return Demande.objects.filter(client__utilisateur__is_active=True)
 
     def perform_create(self, serializer):
         # 'statut' est en lecture seule dans le serializer (protection contre

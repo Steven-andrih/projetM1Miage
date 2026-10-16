@@ -4,6 +4,8 @@ import { Alert, Snackbar, Typography } from '@mui/material'
 import * as demandesApi from '../../api/demandes.api'
 import * as propositionsApi from '../../api/propositions.api'
 import * as recommandationsApi from '../../api/recommandations.api'
+import * as messagerieApi from '../../api/messagerie.api'
+import { useToast } from '../../components/ToastProvider'
 import { unwrapList } from '../../utils/api'
 import { useAuth } from '../../auth/useAuth'
 import { useCatalogue } from '../catalogue/useCatalogue'
@@ -37,6 +39,9 @@ export default function DemandeDetailContainer() {
 
   const [acceptTargetId, setAcceptTargetId] = useState(null)
   const [accepting, setAccepting] = useState(false)
+  const [refuseTargetId, setRefuseTargetId] = useState(null)
+  const [refusing, setRefusing] = useState(false)
+  const { showToast } = useToast()
 
   const [recommandations, setRecommandations] = useState([])
   const [recoLoaded, setRecoLoaded] = useState(false)
@@ -145,6 +150,29 @@ export default function DemandeDetailContainer() {
     }
   }
 
+  const handleConfirmRefuse = async () => {
+    setRefusing(true)
+    try {
+      await propositionsApi.refuseProposition(refuseTargetId)
+      setRefuseTargetId(null)
+      showToast('Proposition refusée.', 'info')
+      loadAll()
+    } catch {
+      setError(true)
+    } finally {
+      setRefusing(false)
+    }
+  }
+
+  const handleDiscuss = async (propositionId) => {
+    try {
+      const conversation = await messagerieApi.ouvrirConversation(propositionId)
+      navigate(`/client/messages/${conversation.id}`)
+    } catch {
+      showToast("Impossible d'ouvrir la conversation.", 'error')
+    }
+  }
+
   const handleLoadRecommandations = () => {
     setRecoLoaded(true)
     setRecoLoading(true)
@@ -187,7 +215,13 @@ export default function DemandeDetailContainer() {
           <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>
             Propositions reçues
           </Typography>
-          <PropositionsRecuesList propositions={propositions} onAccept={(pid) => setAcceptTargetId(pid)} />
+          <PropositionsRecuesList
+            propositions={propositions}
+            demande={demande}
+            onAccept={(pid) => setAcceptTargetId(pid)}
+            onRefuse={(pid) => setRefuseTargetId(pid)}
+            onDiscuss={handleDiscuss}
+          />
 
           <RecommendationsSection
             recommandations={recommandations}
@@ -206,6 +240,7 @@ export default function DemandeDetailContainer() {
         confirmLabel="Supprimer"
         confirmColor="error"
         loading={deleting}
+        loadingLabel="Suppression…"
         onCancel={() => setConfirmDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
       />
@@ -219,6 +254,17 @@ export default function DemandeDetailContainer() {
         loading={accepting}
         onCancel={() => setAcceptTargetId(null)}
         onConfirm={handleConfirmAccept}
+      />
+
+      <ConfirmDialog
+        open={Boolean(refuseTargetId)}
+        title="Refuser cette proposition ?"
+        message="Le prestataire en sera informé. La conversation associée passera en lecture seule."
+        confirmLabel="Refuser"
+        confirmColor="error"
+        loading={refusing}
+        onCancel={() => setRefuseTargetId(null)}
+        onConfirm={handleConfirmRefuse}
       />
 
       <Snackbar open={successOpen} autoHideDuration={3000} onClose={() => setSuccessOpen(false)}>

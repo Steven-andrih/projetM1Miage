@@ -1,12 +1,13 @@
 import { Box, Button, Divider, Paper, Stack, Typography } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import StatusChip from '../../components/StatusChip'
+import { formatAriary } from '../../utils/format'
 
 export default function MissionDetailView({ mission, isPrestataire, onMarkTerminee, submitting }) {
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
       <Stack spacing={3}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
           <StatusChip status={mission.statut} />
           {isPrestataire && mission.statut === 'EN_COURS' && (
             <Button
@@ -28,7 +29,7 @@ export default function MissionDetailView({ mission, isPrestataire, onMarkTermin
             <Typography variant="subtitle2" color="text.secondary" gutterBottom>
               Demande associée
             </Typography>
-            <Typography variant="body1" fontWeight={600}>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
               {mission.demande.titre}
             </Typography>
             <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
@@ -47,13 +48,13 @@ export default function MissionDetailView({ mission, isPrestataire, onMarkTermin
             </Typography>
             {mission.proposition.tarif_propose && (
               <Typography variant="body2" sx={{ mt: 1 }}>
-                Tarif : {Number(mission.proposition.tarif_propose).toLocaleString('fr-FR')} €
+                Tarif : {formatAriary(mission.proposition.tarif_propose)}
               </Typography>
             )}
           </Box>
         )}
 
-        <Stack direction="row" spacing={4} flexWrap="wrap">
+        <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap' }}>
           {mission.date_debut && (
             <Typography variant="body2">
               Début : {new Date(mission.date_debut).toLocaleDateString('fr-FR')}

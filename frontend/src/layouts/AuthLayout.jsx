@@ -52,9 +52,9 @@ export default function AuthLayout() {
           },
         }}
       >
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ position: 'relative' }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', position: 'relative' }}>
           <BrandMark size={40} light />
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Jobbing Local
           </Typography>
         </Stack>
@@ -62,8 +62,7 @@ export default function AuthLayout() {
         <Box sx={{ position: 'relative', maxWidth: 420 }}>
           <Typography
             variant="h3"
-            fontWeight={700}
-            sx={{ mb: 2, lineHeight: 1.15, fontSize: { md: '1.9rem', lg: '2.4rem' } }}
+            sx={{ fontWeight: 700, mb: 2, lineHeight: 1.15, fontSize: { md: '1.9rem', lg: '2.4rem' } }}
           >
             La mise en relation locale, simple et fiable.
           </Typography>
@@ -72,7 +71,7 @@ export default function AuthLayout() {
           </Typography>
           <Stack spacing={1.5}>
             {ARGUMENTS.map((texte) => (
-              <Stack key={texte} direction="row" spacing={1.25} alignItems="center">
+              <Stack key={texte} direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                 <CheckCircleOutlineIcon sx={{ fontSize: 20, opacity: 0.9 }} />
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                   {texte}
@@ -111,11 +110,10 @@ export default function AuthLayout() {
           <Stack
             direction="row"
             spacing={1.25}
-            alignItems="center"
-            sx={{ mb: 3, display: { xs: 'flex', md: 'none' } }}
+            sx={{ alignItems: 'center', mb: 3, display: { xs: 'flex', md: 'none' } }}
           >
             <BrandMark size={32} />
-            <Typography variant="subtitle1" fontWeight={700}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               Jobbing Local
             </Typography>
           </Stack>

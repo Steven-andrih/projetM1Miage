@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -12,6 +14,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 
     path('api/users/', include('users.urls')),
+    path('api/admin/', include('users.urls_admin')),
     path('api/', include('services.urls')),
     path('api/', include('demandes.urls')),
     path('api/', include('propositions.urls')),
@@ -19,6 +22,11 @@ urlpatterns = [
     path('api/', include('avis.urls')),
     path('api/', include('statistiques.urls')),
     path('api/', include('ia.urls')),
+    path('api/', include('messagerie.urls')),
 
 
 ]
+
+# Fichiers publics (photos de profil). En production, ils sont servis par le serveur web.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

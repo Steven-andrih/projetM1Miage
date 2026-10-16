@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   AppBar,
-  Avatar,
+  Badge,
   Box,
   Container,
   Drawer,
@@ -25,6 +25,10 @@ import LogoutIcon from '@mui/icons-material/LogoutOutlined';
 import { useAuth } from '../auth/useAuth';
 import { COMMON_NAV_ITEMS, NAV_ITEMS } from '../utils/navConfig';
 import BrandMark from '../components/BrandMark';
+import NotificationsProvider from '../components/NotificationsProvider';
+import useNotifications from '../hooks/useNotifications';
+import UserAvatar from '../components/UserAvatar';
+import MonCompteDialog from '../components/MonCompteDialog';
 
 const DRAWER_WIDTH = 264;
 const DRAWER_WIDTH_COLLAPSED = 80;
@@ -45,12 +49,21 @@ function readCollapsed() {
 }
 
 export default function AppLayout() {
+  return (
+    <NotificationsProvider>
+      <AppLayoutContent />
+    </NotificationsProvider>
+  );
+}
+
+function AppLayoutContent() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(readCollapsed);
 
   const { user, role, logout } = useAuth();
+  const notifications = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -73,7 +86,8 @@ export default function AppLayout() {
   const navItems = [...(NAV_ITEMS[role] || []), ...COMMON_NAV_ITEMS];
   const currentItem = navItems.find((item) => location.pathname.startsWith(item.path));
   const roleLabel = role ? role.charAt(0) + role.slice(1).toLowerCase() : '';
-  const initial = user?.username?.[0]?.toUpperCase() ?? '?';
+  const nomAffiche = user?.nom || user?.username || '';
+  const [compteOpen, setCompteOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -94,9 +108,7 @@ export default function AppLayout() {
       <Stack
         direction="row"
         spacing={1.5}
-        alignItems="center"
-        justifyContent={isCollapsed ? 'center' : 'flex-start'}
-        sx={{ px: isCollapsed ? 0 : 1, mb: 3, minHeight: 36 }}
+        sx={{ alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-start', px: isCollapsed ? 0 : 1, mb: 3, minHeight: 36 }}
       >
         <BrandMark size={36} />
         {!isCollapsed && (
@@ -123,6 +135,7 @@ export default function AppLayout() {
       <List sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 0.25, py: 0 }}>
         {navItems.map((item) => {
           const Icon = item.icon;
+          const compteur = item.badge ? notifications[item.badge] || 0 : 0;
           const button = (
             <ListItemButton
               key={item.path}
@@ -142,19 +155,52 @@ export default function AppLayout() {
             >
               {Icon && (
                 <ListItemIcon sx={{ minWidth: isCollapsed ? 0 : 36, justifyContent: 'center' }}>
-                  <Icon fontSize="small" />
+                  <Badge
+                    color="error"
+                    variant="dot"
+                    invisible={!isCollapsed || compteur === 0}
+                    overlap="circular"
+                  >
+                    <Icon fontSize="small" />
+                  </Badge>
                 </ListItemIcon>
               )}
               {!isCollapsed && (
                 <ListItemText
                   primary={item.label}
-                  primaryTypographyProps={{ variant: 'body2', fontWeight: 500, noWrap: true }}
+                  slotProps={{ primary: { variant: 'body2', noWrap: true, sx: { fontWeight: 500 } } }}
                 />
+              )}
+              {!isCollapsed && compteur > 0 && (
+                <Box
+                  component="span"
+                  sx={{
+                    ml: 1,
+                    minWidth: 20,
+                    height: 20,
+                    px: 0.75,
+                    borderRadius: 10,
+                    bgcolor: 'error.main',
+                    color: '#fff',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {compteur > 99 ? '99+' : compteur}
+                </Box>
               )}
             </ListItemButton>
           );
           return isCollapsed ? (
-            <Tooltip key={item.path} title={item.label} placement="right" arrow>
+            <Tooltip
+              key={item.path}
+              title={compteur > 0 ? `${item.label} (${compteur})` : item.label}
+              placement="right"
+              arrow
+            >
               {button}
             </Tooltip>
           ) : (
@@ -175,15 +221,18 @@ export default function AppLayout() {
           gap: isCollapsed ? 1 : 1.5,
         }}
       >
-        <Tooltip title={isCollapsed ? `${user?.username} · ${roleLabel}` : ''} placement="right" arrow>
-          <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: '0.9rem' }}>
-            {initial}
-          </Avatar>
+        <Tooltip title={isCollapsed ? `${nomAffiche} · Mon compte` : 'Mon compte'} placement="right" arrow>
+          <IconButton onClick={() => setCompteOpen(true)} sx={{ p: 0 }} aria-label="mon compte">
+            <UserAvatar photo={user?.photo} nom={nomAffiche} size={36} variant="filled" />
+          </IconButton>
         </Tooltip>
         {!isCollapsed && (
-          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-            <Typography variant="body2" fontWeight={600} noWrap>
-              {user?.username}
+          <Box
+            onClick={() => setCompteOpen(true)}
+            sx={{ minWidth: 0, flexGrow: 1, cursor: 'pointer' }}
+          >
+            <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+              {nomAffiche}
             </Typography>
             <Typography variant="caption" color="text.secondary" noWrap>
               {roleLabel}
@@ -210,7 +259,7 @@ export default function AppLayout() {
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, md: 3 } }}>
-          <Stack direction="row" alignItems="center" spacing={1.5}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Tooltip title={isMobile ? 'Menu' : isCollapsed ? 'Afficher le menu' : 'Masquer le menu'}>
               <IconButton
                 edge="start"
@@ -234,17 +283,11 @@ export default function AppLayout() {
             </Box>
           </Stack>
 
-          <Avatar
-            sx={{
-              width: 34,
-              height: 34,
-              bgcolor: alpha(theme.palette.primary.main, 0.12),
-              color: 'primary.dark',
-              fontSize: '0.85rem',
-            }}
-          >
-            {initial}
-          </Avatar>
+          <Tooltip title="Mon compte">
+            <IconButton onClick={() => setCompteOpen(true)} sx={{ p: 0 }} aria-label="mon compte">
+              <UserAvatar photo={user?.photo} nom={nomAffiche} size={34} />
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
@@ -288,6 +331,7 @@ export default function AppLayout() {
           <Outlet />
         </Container>
       </Box>
+      <MonCompteDialog open={compteOpen} onClose={() => setCompteOpen(false)} />
     </Box>
   );
 }

@@ -14,6 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import { formatAriary } from '../../utils/format'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -40,7 +41,7 @@ export default function MesServicesView({
 }) {
   return (
     <>
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 2 }}>
         <Button variant="contained" startIcon={<AddIcon />} onClick={onOpenCreate}>
           Ajouter un service
         </Button>
@@ -61,13 +62,13 @@ export default function MesServicesView({
           {myServices.map((item) => (
             <Card variant="outlined" key={item.id}>
               <CardContent>
-                <Typography variant="subtitle1" fontWeight={600}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                   {findServiceLabel(services, item.service)}
                 </Typography>
                 <Chip
                   size="small"
                   sx={{ mt: 1, bgcolor: 'secondary.main', color: '#fff' }}
-                  label={`${item.tarif_min ?? '?'} € - ${item.tarif_max ?? '?'} €`}
+                  label={`${formatAriary(item.tarif_min)} – ${formatAriary(item.tarif_max)}`}
                 />
               </CardContent>
               <CardActions>
@@ -95,7 +96,7 @@ export default function MesServicesView({
                 disabled={Boolean(editingId)}
               />
               <TextField
-                label="Tarif minimum (€)"
+                label="Tarif minimum (Ar)"
                 name="tarif_min"
                 type="number"
                 value={form.tarif_min}
@@ -103,7 +104,7 @@ export default function MesServicesView({
                 fullWidth
               />
               <TextField
-                label="Tarif maximum (€)"
+                label="Tarif maximum (Ar)"
                 name="tarif_max"
                 type="number"
                 value={form.tarif_max}

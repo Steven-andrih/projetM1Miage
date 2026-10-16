@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'recommandations',
     'statistiques',
     'ia',
+    'messagerie',
 
 ]
 
@@ -100,6 +101,9 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
+        # utf8mb4 : accents, symboles (→) et émojis dans les messages du chat
+        'OPTIONS': {'charset': 'utf8mb4'},
+        'TEST': {'CHARSET': 'utf8mb4', 'COLLATION': 'utf8mb4_unicode_ci'},
     }
 }
 
@@ -139,6 +143,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Fichiers sensibles (pièces d'identité) : jamais exposés par une URL publique.
+PRIVATE_MEDIA_ROOT = BASE_DIR / 'private_media'
+
+# Pièces d'identité : formats et taille acceptés
+DOCUMENT_IDENTITE_EXTENSIONS = ('jpg', 'jpeg', 'png', 'webp')
+DOCUMENT_IDENTITE_TAILLE_MAX = 5 * 1024 * 1024  # 5 Mo
+
+# Photos de profil : publiques (servies depuis MEDIA_URL), recadrées en carré
+PHOTO_PROFIL_EXTENSIONS = ('jpg', 'jpeg', 'png', 'webp')
+PHOTO_PROFIL_TAILLE_MAX = 5 * 1024 * 1024  # 5 Mo
 
 
 # Email

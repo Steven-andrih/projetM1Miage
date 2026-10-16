@@ -79,7 +79,7 @@ export default function DemandeOuverteDetailContainer() {
       <DemandeReadOnlyInfo demande={demande} />
 
       {myProposition ? (
-        <PropositionSummary proposition={myProposition} />
+        <PropositionSummary proposition={myProposition} onUpdated={load} />
       ) : (
         <PropositionForm onSubmit={handleSubmit} submitting={submitting} />
       )}

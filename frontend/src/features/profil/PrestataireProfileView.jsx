@@ -8,17 +8,15 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import GeolocationButton from '../../components/GeolocationButton';
-
-const STATUT_COLORS = {
-  VALIDE: 'success',
-  EN_ATTENTE: 'warning',
-  REFUSE: 'error',
-};
+import VerifiedBadge from '../../components/VerifiedBadge';
+import { VERIFICATION, statutVerification } from '../../utils/verification';
 
 export default function PrestataireProfileView({
   form,
   statutValidation,
+  aDocument,
   onChange,
   onToggle,
   onLocate,
@@ -31,13 +29,23 @@ export default function PrestataireProfileView({
         {statutValidation && (
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Statut de validation
+              Vérification d'identité
             </Typography>
-            <Chip
-              label={statutValidation}
-              color={STATUT_COLORS[statutValidation] || 'default'}
-              size="small"
-            />
+            {statutValidation === 'VALIDE' ? (
+              <VerifiedBadge />
+            ) : (
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Chip
+                  label={VERIFICATION[statutVerification(statutValidation, aDocument)].label}
+                  color={VERIFICATION[statutVerification(statutValidation, aDocument)].palette}
+                  variant="outlined"
+                  size="small"
+                />
+                <Button component={RouterLink} to="/prestataire/verification" size="small">
+                  Gérer ma vérification
+                </Button>
+              </Stack>
+            )}
           </Box>
         )}
 

@@ -61,7 +61,7 @@ export default function DemandeFormFields({
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <TextField
-          label="Budget min (€)"
+          label="Budget min (Ar)"
           name="budget_min"
           type="number"
           value={form.budget_min}
@@ -69,7 +69,7 @@ export default function DemandeFormFields({
           sx={{ flex: '1 1 160px' }}
         />
         <TextField
-          label="Budget max (€)"
+          label="Budget max (Ar)"
           name="budget_max"
           type="number"
           value={form.budget_max}

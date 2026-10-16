@@ -71,7 +71,7 @@ def score_missions(prestataire):
 def calculer_recommandations(demande):
     """Calcule, persiste et retourne les recommandations classées pour une demande."""
     prestataire_ids = PrestataireService.objects.filter(
-        service=demande.service, actif=True
+        service=demande.service, actif=True, prestataire__utilisateur__is_active=True
     ).values_list('prestataire_id', flat=True).distinct()
 
     resultats = []
