@@ -1,6 +1,8 @@
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography, alpha, useTheme } from '@mui/material'
 
 export default function MiniBarList({ items, labelKey, valueKey, emptyLabel = '—' }) {
+  const theme = useTheme()
+
   if (!items || items.length === 0) {
     return (
       <Typography color="text.secondary" variant="body2">
@@ -12,26 +14,35 @@ export default function MiniBarList({ items, labelKey, valueKey, emptyLabel = '�
   const max = Math.max(...items.map((item) => Number(item[valueKey]) || 0), 1)
 
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={1.75}>
       {items.map((item, idx) => {
         const value = Number(item[valueKey]) || 0
         const label = item[labelKey] || 'Non renseigné'
         return (
           <Box key={idx}>
-            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-              <Typography variant="body2">{label}</Typography>
-              <Typography variant="body2" fontWeight={600}>
+            <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 0.75 }}>
+              <Typography variant="body2" noWrap sx={{ pr: 2 }}>
+                {label}
+              </Typography>
+              <Typography variant="body2" fontWeight={600} sx={{ fontVariantNumeric: 'tabular-nums' }}>
                 {value}
               </Typography>
             </Stack>
-            <Box sx={{ height: 8, borderRadius: 1, bgcolor: 'background.default', overflow: 'hidden' }}>
+            <Box
+              sx={{
+                height: 6,
+                borderRadius: 3,
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                overflow: 'hidden',
+              }}
+            >
               <Box
                 sx={{
                   height: '100%',
                   width: `${(value / max) * 100}%`,
-                  bgcolor: 'primary.main',
-                  borderRadius: 1,
-                  transition: 'width 0.3s',
+                  borderRadius: 3,
+                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                  transition: 'width 0.4s ease',
                 }}
               />
             </Box>

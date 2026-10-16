@@ -1,6 +1,6 @@
 import random
 from decimal import Decimal
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -13,11 +13,30 @@ from missions.models import Mission
 from avis.models import Avis
 from recommandations.logic import calculer_recommandations
 
-ANTANANARIVO_CENTER = (-18.8792, 47.5079)
+DEMO_PASSWORD = "Demo1234!"
+NB_MOIS_HISTORIQUE = 8  # profondeur de l'historique généré (pour l'évolution mensuelle)
+
+VILLES = {
+    "Antananarivo": (-18.8792, 47.5079),
+    "Antsirabe": (-19.8659, 47.0333),
+    "Toamasina": (-18.1492, 49.4023),
+    "Fianarantsoa": (-21.4527, 47.0857),
+    "Mahajanga": (-15.7167, 46.3167),
+}
 
 
 def jitter(base, spread=0.05):
     return Decimal(str(round(base + random.uniform(-spread, spread), 7)))
+
+
+def coords(ville):
+    lat, lon = VILLES[ville]
+    return jitter(lat), jitter(lon)
+
+
+def montant(min_k, max_k):
+    """Montant en Ariary, par tranche de 1 000."""
+    return Decimal(random.randrange(min_k, max_k)) * 1000
 
 
 class Command(BaseCommand):
@@ -25,8 +44,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         random.seed(42)
+        self.now = timezone.now()
         self.stdout.write("Démarrage du seed...")
 
+        self.seed_admin()
         categories = self.seed_categories()
         services = self.seed_services(categories)
         clients = self.seed_clients()
@@ -39,8 +60,26 @@ class Command(BaseCommand):
         self.seed_recommandations(demandes)
 
         self.stdout.write(self.style.SUCCESS("Seed terminé avec succès."))
+        self.stdout.write(f"  Mot de passe de tous les comptes de démo : {DEMO_PASSWORD}")
 
     # ------------------------------------------------------------------
+    def seed_admin(self):
+        user, created = Utilisateur.objects.get_or_create(
+            username="admin",
+            defaults=dict(
+                email="admin@example.mg",
+                first_name="Admin",
+                last_name="Plateforme",
+                role=Utilisateur.Role.ADMIN,
+                is_staff=True,
+                is_superuser=True,
+            ),
+        )
+        if created:
+            user.set_password(DEMO_PASSWORD)
+            user.save()
+        self.stdout.write("  Compte admin prêt (admin).")
+
     def seed_categories(self):
         noms = [
             ("Informatique", "Dépannage, installation et maintenance informatique"),
@@ -90,19 +129,27 @@ class Command(BaseCommand):
 
     def seed_clients(self):
         noms = [
-            ("Jean", "Rakoto", "Analakely"),
-            ("Marie", "Razafindrabe", "Ankorondrano"),
-            ("Paul", "Andrianaivo", "Ivandry"),
-            ("Hanta", "Rasoanaivo", "Tsaralalana"),
-            ("Tiana", "Ravalomanana", "Ambohipo"),
-            ("Nirina", "Randria", "Itaosy"),
-            ("Mamy", "Rakotoarivelo", "Ambatobe"),
-            ("Haja", "Rasolofo", "Alasora"),
-            ("Lova", "Andriamampianina", "Ankadifotsy"),
-            ("Voahangi", "Ratsimba", "Antanimena"),
+            ("Jean", "Rakoto", "Analakely", "Antananarivo"),
+            ("Marie", "Razafindrabe", "Ankorondrano", "Antananarivo"),
+            ("Paul", "Andrianaivo", "Ivandry", "Antananarivo"),
+            ("Hanta", "Rasoanaivo", "Tsaralalana", "Antananarivo"),
+            ("Tiana", "Ravalomanana", "Ambohipo", "Antananarivo"),
+            ("Nirina", "Randria", "Itaosy", "Antananarivo"),
+            ("Mamy", "Rakotoarivelo", "Ambatobe", "Antananarivo"),
+            ("Haja", "Rasolofo", "Alasora", "Antananarivo"),
+            ("Lova", "Andriamampianina", "Ankadifotsy", "Antananarivo"),
+            ("Voahangi", "Ratsimba", "Antanimena", "Antananarivo"),
+            ("Rija", "Rakotondrabe", "Ambohimanarina", "Antananarivo"),
+            ("Sitraka", "Ramaroson", "Andravoahangy", "Antananarivo"),
+            ("Faly", "Rabemananjara", "Antsirabe-Centre", "Antsirabe"),
+            ("Noro", "Andriamanantena", "Mahazoarivo", "Antsirabe"),
+            ("Tojo", "Rakotonirina", "Tanambao", "Toamasina"),
+            ("Vola", "Razanadrakoto", "Ankirihiry", "Toamasina"),
+            ("Mirana", "Rafaralahy", "Isada", "Fianarantsoa"),
+            ("Andry", "Ratovonirina", "Mahabibo", "Mahajanga"),
         ]
         clients = []
-        for i, (prenom, nom, quartier) in enumerate(noms, start=1):
+        for i, (prenom, nom, quartier, ville) in enumerate(noms, start=1):
             username = f"client_{prenom.lower()}{i}"
             user, created = Utilisateur.objects.get_or_create(
                 username=username,
@@ -115,36 +162,42 @@ class Command(BaseCommand):
                 ),
             )
             if created:
-                user.set_password("Demo1234!")
+                user.set_password(DEMO_PASSWORD)
                 user.save()
             client = user.client_profile
             client.adresse = f"Lot {random.randint(1, 300)} {quartier}"
-            client.ville = "Antananarivo"
-            lat, lon = ANTANANARIVO_CENTER
-            client.latitude = jitter(lat)
-            client.longitude = jitter(lon)
+            client.ville = ville
+            client.latitude, client.longitude = coords(ville)
             client.save()
             clients.append(client)
         self.stdout.write(f"  {len(clients)} clients prêts.")
         return clients
 
     def seed_prestataires(self):
+        # (prénom, nom, quartier, ville, années d'expérience, disponible, statut de validation)
+        V, A = Prestataire.StatutValidation.VALIDE, Prestataire.StatutValidation.EN_ATTENTE
         data = [
-            ("Toky", "Rajaonarivelo", "Ankorondrano", 5, True),
-            ("Fetra", "Rabe", "Andoharanofotsy", 3, True),
-            ("Zo", "Rasolonjatovo", "Isotry", 8, True),
-            ("Fy", "Ramanantsoa", "Analakely", 2, True),
-            ("Nina", "Razanajatovo", "Ivandry", 6, False),
-            ("Dera", "Andrianarivo", "Ambohipo", 10, True),
-            ("Tahina", "Rakotovao", "Tsaralalana", 1, True),
-            ("Soa", "Raharinirina", "Ambatobe", 4, True),
-            ("Hery", "Randrianasolo", "Itaosy", 7, True),
-            ("Njara", "Rakotomalala", "Alasora", 3, False),
-            ("Mialy", "Ranaivoson", "Ankadifotsy", 9, True),
-            ("Bako", "Rasamimanana", "Antanimena", 2, True),
+            ("Toky", "Rajaonarivelo", "Ankorondrano", "Antananarivo", 5, True, V),
+            ("Fetra", "Rabe", "Andoharanofotsy", "Antananarivo", 3, True, V),
+            ("Zo", "Rasolonjatovo", "Isotry", "Antananarivo", 8, True, V),
+            ("Fy", "Ramanantsoa", "Analakely", "Antananarivo", 2, True, V),
+            ("Nina", "Razanajatovo", "Ivandry", "Antananarivo", 6, False, V),
+            ("Dera", "Andrianarivo", "Ambohipo", "Antananarivo", 10, True, V),
+            ("Tahina", "Rakotovao", "Tsaralalana", "Antananarivo", 1, True, V),
+            ("Soa", "Raharinirina", "Ambatobe", "Antananarivo", 4, True, V),
+            ("Hery", "Randrianasolo", "Itaosy", "Antananarivo", 7, True, V),
+            ("Njara", "Rakotomalala", "Alasora", "Antananarivo", 3, False, V),
+            ("Mialy", "Ranaivoson", "Ankadifotsy", "Antananarivo", 9, True, V),
+            ("Bako", "Rasamimanana", "Antanimena", "Antananarivo", 2, True, V),
+            ("Tsiry", "Andriamahefa", "Ambohimanarina", "Antananarivo", 12, True, V),
+            ("Lalaina", "Rakotoson", "Antsirabe-Centre", "Antsirabe", 6, True, V),
+            ("Hasina", "Razafimahatratra", "Tanambao", "Toamasina", 4, True, V),
+            ("Ony", "Randrianarisoa", "Isada", "Fianarantsoa", 5, True, V),
+            ("Koloina", "Rabarijaona", "Andravoahangy", "Antananarivo", 1, True, A),
+            ("Mahefa", "Ratsimbazafy", "Mahabibo", "Mahajanga", 3, True, A),
         ]
         prestataires = []
-        for i, (prenom, nom, quartier, exp, dispo) in enumerate(data, start=1):
+        for i, (prenom, nom, quartier, ville, exp, dispo, validation) in enumerate(data, start=1):
             username = f"presta_{prenom.lower()}{i}"
             user, created = Utilisateur.objects.get_or_create(
                 username=username,
@@ -157,17 +210,22 @@ class Command(BaseCommand):
                 ),
             )
             if created:
-                user.set_password("Demo1234!")
+                user.set_password(DEMO_PASSWORD)
                 user.save()
             presta = user.prestataire_profile
-            presta.description = f"Prestataire expérimenté basé à {quartier}, Antananarivo."
+            presta.description = (
+                f"Prestataire avec {exp} an(s) d'expérience, basé à {quartier}, {ville}. "
+                "Interventions soignées, devis clair et respect des délais."
+            )
             presta.adresse = f"Lot {random.randint(1, 300)} {quartier}"
-            presta.ville = "Antananarivo"
-            lat, lon = ANTANANARIVO_CENTER
-            presta.latitude = jitter(lat)
-            presta.longitude = jitter(lon)
+            presta.ville = ville
+            presta.latitude, presta.longitude = coords(ville)
             presta.annee_experience = exp
-            presta.statut_validation = Prestataire.StatutValidation.VALIDE
+            presta.statut_validation = validation
+            presta.date_validation = (
+                self.now - timedelta(days=random.randint(60, 300))
+                if validation == Prestataire.StatutValidation.VALIDE else None
+            )
             presta.disponible = dispo
             presta.save()
             prestataires.append(presta)
@@ -177,10 +235,10 @@ class Command(BaseCommand):
     def seed_prestataire_services(self, prestataires, services):
         count = 0
         for presta in prestataires:
-            chosen = random.sample(services, k=random.choice([1, 2]))
+            chosen = random.sample(services, k=random.choice([2, 3, 3, 4]))
             for service in chosen:
-                tarif_min = Decimal(random.randrange(10, 60)) * 1000
-                tarif_max = tarif_min + Decimal(random.randrange(20, 100)) * 1000
+                tarif_min = montant(10, 60)
+                tarif_max = tarif_min + montant(20, 100)
                 _, created = PrestataireService.objects.get_or_create(
                     prestataire=presta, service=service,
                     defaults=dict(tarif_min=tarif_min, tarif_max=tarif_max, actif=True),
@@ -189,73 +247,225 @@ class Command(BaseCommand):
                     count += 1
         self.stdout.write(f"  {count} associations prestataire-service créées.")
 
-    def seed_demandes(self, clients, services):
-        titres = [
+    # ------------------------------------------------------------------
+    TITRES_PAR_SERVICE = {
+        "Réparation ordinateur": [
             "Réparation urgente d'un ordinateur portable",
-            "Fuite d'eau sous l'évier de la cuisine",
-            "Installation d'une prise électrique supplémentaire",
-            "Grand nettoyage avant déménagement",
-            "Déménagement d'un appartement 2 pièces",
-            "Cours de soutien en mathématiques niveau collège",
-            "Réparation d'un réfrigérateur",
-            "Coiffure pour mariage à domicile",
-            "Entretien du jardin et taille des haies",
-            "Organisation d'un petit événement familial",
-            "Débouchage de canalisation bouchée",
+            "Écran de PC fixe qui ne s'allume plus",
+            "Remplacement du disque dur par un SSD",
+        ],
+        "Installation logiciel": [
             "Installation d'un logiciel de comptabilité",
-        ]
-        statuts = [Demande.Statut.PUBLIEE, Demande.Statut.EN_COURS, Demande.Statut.TERMINEE]
+            "Réinstallation complète de Windows",
+            "Installation d'une suite bureautique sur 3 postes",
+        ],
+        "Dépannage réseau": [
+            "Wifi instable dans toute la maison",
+            "Configuration du réseau d'un petit bureau",
+        ],
+        "Réparation de fuite": [
+            "Fuite d'eau sous l'évier de la cuisine",
+            "Fuite au niveau du chauffe-eau",
+            "Infiltration d'eau dans la salle de bain",
+        ],
+        "Installation de robinet": [
+            "Remplacement du mitigeur de la cuisine",
+            "Installation d'un robinet extérieur",
+        ],
+        "Débouchage canalisation": [
+            "Débouchage de canalisation bouchée",
+            "Évier de cuisine complètement bouché",
+            "WC bouché à déboucher rapidement",
+        ],
+        "Installation électrique": [
+            "Installation d'une prise électrique supplémentaire",
+            "Mise aux normes du tableau électrique",
+            "Installation de luminaires dans le salon",
+        ],
+        "Dépannage électrique": [
+            "Coupure de courant partielle dans la maison",
+            "Prises qui ne fonctionnent plus dans la chambre",
+        ],
+        "Ménage à domicile": [
+            "Ménage hebdomadaire d'un appartement",
+            "Nettoyage après travaux de peinture",
+        ],
+        "Grand nettoyage": [
+            "Grand nettoyage avant déménagement",
+            "Grand nettoyage de printemps d'une villa",
+        ],
+        "Déménagement": [
+            "Déménagement d'un appartement 2 pièces",
+            "Transport de meubles vers Antsirabe",
+            "Déménagement de bureaux (15 postes)",
+        ],
+        "Livraison de colis": [
+            "Livraison d'un colis fragile en centre-ville",
+            "Livraisons quotidiennes pour une boutique en ligne",
+        ],
+        "Cours de mathématiques": [
+            "Cours de soutien en mathématiques niveau collège",
+            "Préparation au bac en mathématiques",
+        ],
+        "Cours d'anglais": [
+            "Cours d'anglais conversationnel pour adulte",
+            "Soutien en anglais pour un élève de 3ème",
+        ],
+        "Réparation électroménager": [
+            "Réparation d'un réfrigérateur",
+            "Machine à laver qui ne vidange plus",
+            "Four électrique qui ne chauffe plus",
+        ],
+        "Coiffure à domicile": [
+            "Coiffure pour mariage à domicile",
+            "Coupe et brushing à domicile",
+        ],
+        "Manucure à domicile": [
+            "Manucure et pose de vernis semi-permanent",
+        ],
+        "Entretien de jardin": [
+            "Entretien du jardin et taille des haies",
+            "Tonte de pelouse et désherbage",
+            "Plantation d'arbres fruitiers",
+        ],
+        "Organisation d'événement": [
+            "Organisation d'un petit événement familial",
+            "Logistique d'un anniversaire pour 50 personnes",
+            "Organisation d'un séminaire d'entreprise",
+        ],
+    }
+
+    DESCRIPTIONS = [
+        "Intervention souhaitée rapidement, merci de proposer vos disponibilités.",
+        "Je suis disponible en semaine après 17h et le samedi matin.",
+        "Merci d'indiquer un devis détaillé avant l'intervention.",
+        "Le matériel nécessaire est à prévoir par le prestataire.",
+        "Travail à réaliser avec soin, c'est pour un logement en location.",
+    ]
+
+    def _date_creation_aleatoire(self):
+        """Tire une date dans les NB_MOIS_HISTORIQUE derniers mois, avec une activité croissante."""
+        poids = [i + 2 for i in range(NB_MOIS_HISTORIQUE)]  # mois récents plus probables
+        mois_recul = random.choices(range(NB_MOIS_HISTORIQUE), weights=poids)[0]
+        mois_recul = NB_MOIS_HISTORIQUE - 1 - mois_recul
+        jours = mois_recul * 30 + random.randint(0, 29)
+        return self.now - timedelta(days=jours, hours=random.randint(0, 23), minutes=random.randint(0, 59))
+
+    def _statut_selon_age(self, age_jours):
+        S = Demande.Statut
+        if age_jours > 60:
+            choix, poids = [S.TERMINEE, S.ANNULEE, S.EN_COURS, S.PUBLIEE], [70, 15, 10, 5]
+        elif age_jours > 20:
+            choix, poids = [S.TERMINEE, S.EN_COURS, S.PUBLIEE, S.ANNULEE], [40, 35, 15, 10]
+        else:
+            choix, poids = [S.PUBLIEE, S.EN_COURS, S.BROUILLON, S.ANNULEE], [50, 30, 15, 5]
+        return random.choices(choix, weights=poids)[0]
+
+    def seed_demandes(self, clients, services):
         demandes = []
-        for i, titre in enumerate(titres):
-            client = clients[i % len(clients)]
-            service = services[i % len(services)]
-            budget_min = Decimal(random.randrange(20, 50)) * 1000
-            budget_max = budget_min + Decimal(random.randrange(30, 80)) * 1000
-            lat, lon = ANTANANARIVO_CENTER
-            demande, created = Demande.objects.get_or_create(
-                client=client, titre=titre,
-                defaults=dict(
-                    service=service,
-                    description=f"{titre}. Intervention souhaitée rapidement, merci de proposer vos disponibilités.",
-                    budget_min=budget_min,
-                    budget_max=budget_max,
-                    date_souhaitee=date.today() + timedelta(days=random.randint(1, 20)),
-                    urgence=random.choice(Demande.Urgence.values),
-                    adresse=client.adresse or "Antananarivo",
-                    latitude=jitter(lat),
-                    longitude=jitter(lon),
-                    statut=random.choice(statuts),
-                ),
-            )
-            demandes.append(demande)
+        for client in clients:
+            nb = random.choice([4, 5, 6, 7, 8])
+            titres_utilises = set()
+            for _ in range(nb):
+                service = random.choice(services)
+                titre = random.choice(self.TITRES_PAR_SERVICE[service.nom])
+                if titre in titres_utilises:
+                    titre = f"{titre} (bis)"
+                if titre in titres_utilises:
+                    continue
+                titres_utilises.add(titre)
+
+                date_creation = self._date_creation_aleatoire()
+                age_jours = (self.now - date_creation).days
+                statut = self._statut_selon_age(age_jours)
+                budget_min = montant(20, 60)
+                budget_max = budget_min + montant(30, 100)
+                lat, lon = coords(client.ville)
+
+                demande, created = Demande.objects.get_or_create(
+                    client=client, titre=titre,
+                    defaults=dict(
+                        service=service,
+                        description=f"{titre}. {random.choice(self.DESCRIPTIONS)}",
+                        budget_min=budget_min,
+                        budget_max=budget_max,
+                        date_souhaitee=(date_creation + timedelta(days=random.randint(2, 20))).date(),
+                        urgence=random.choices(
+                            Demande.Urgence.values, weights=[25, 50, 25]
+                        )[0],
+                        adresse=client.adresse or client.ville,
+                        latitude=lat,
+                        longitude=lon,
+                        statut=statut,
+                    ),
+                )
+                if created:
+                    # date_creation est en auto_now_add : on la force après coup
+                    Demande.objects.filter(pk=demande.pk).update(
+                        date_creation=date_creation, date_modification=date_creation
+                    )
+                    demande.date_creation = date_creation
+                demandes.append(demande)
         self.stdout.write(f"  {len(demandes)} demandes prêtes.")
         return demandes
 
+    MESSAGES_PROPOSITION = [
+        "Je suis disponible pour réaliser cette prestation rapidement.",
+        "J'ai déjà réalisé plusieurs interventions similaires, je peux passer dès demain.",
+        "Devis incluant le déplacement et la main d'œuvre, matériel en sus.",
+        "Disponible cette semaine, garantie sur le travail effectué.",
+        "Je propose un tarif ajusté à votre budget, n'hésitez pas à me contacter.",
+    ]
+
     def seed_propositions(self, demandes, prestataires):
+        S, P = Demande.Statut, Proposition.Statut
         propositions = []
         for demande in demandes:
+            if demande.statut == S.BROUILLON:
+                continue
             compatibles = [
                 ps.prestataire for ps in PrestataireService.objects.filter(
                     service=demande.service, actif=True
-                )
+                ).select_related("prestataire")
             ]
             if not compatibles:
-                compatibles = random.sample(prestataires, k=min(2, len(prestataires)))
-            chosen = random.sample(compatibles, k=min(len(compatibles), random.choice([1, 2])))
-            for presta in chosen:
-                tarif = Decimal(random.randrange(20, 120)) * 1000
-                statut = Proposition.Statut.EN_ATTENTE
-                if demande.statut in (Demande.Statut.EN_COURS, Demande.Statut.TERMINEE):
-                    statut = Proposition.Statut.ACCEPTEE
+                compatibles = random.sample(prestataires, k=min(3, len(prestataires)))
+
+            if demande.statut == S.PUBLIEE:
+                nb = random.choices([0, 1, 2, 3], weights=[15, 40, 30, 15])[0]
+                statuts = [P.EN_ATTENTE] * nb
+            elif demande.statut in (S.EN_COURS, S.TERMINEE):
+                nb_refusees = random.choices([0, 1, 2], weights=[40, 40, 20])[0]
+                statuts = [P.ACCEPTEE] + [P.REFUSEE] * nb_refusees
+            elif random.random() < 0.3:
+                # Demande annulée après acceptation : la mission sera marquée ANNULEE
+                statuts = [P.ACCEPTEE] + [P.REFUSEE] * random.choice([0, 1])
+            else:  # ANNULEE avant toute acceptation
+                statuts = [P.ANNULEE] * random.choices([0, 1, 2], weights=[40, 40, 20])[0]
+
+            chosen = random.sample(compatibles, k=min(len(compatibles), len(statuts)))
+            for presta, statut in zip(chosen, statuts):
+                date_proposition = demande.date_creation + timedelta(
+                    hours=random.randint(1, 72), minutes=random.randint(0, 59)
+                )
+                date_reponse = None
+                if statut in (P.ACCEPTEE, P.REFUSEE):
+                    date_reponse = date_proposition + timedelta(hours=random.randint(1, 48))
+                elif statut == P.ANNULEE:
+                    date_reponse = date_proposition + timedelta(hours=random.randint(12, 96))
+
                 prop, created = Proposition.objects.get_or_create(
                     demande=demande, prestataire=presta,
                     defaults=dict(
-                        message="Je suis disponible pour réaliser cette prestation rapidement.",
-                        tarif_propose=tarif,
+                        message=random.choice(self.MESSAGES_PROPOSITION),
+                        tarif_propose=montant(20, 150),
                         statut=statut,
-                        date_reponse=timezone.now() if statut == Proposition.Statut.ACCEPTEE else None,
+                        date_reponse=date_reponse,
                     ),
                 )
+                if created:
+                    Proposition.objects.filter(pk=prop.pk).update(date_proposition=date_proposition)
+                    prop.date_proposition = date_proposition
                 propositions.append(prop)
         self.stdout.write(f"  {len(propositions)} propositions prêtes.")
         return propositions
@@ -263,41 +473,70 @@ class Command(BaseCommand):
     def seed_missions(self, propositions):
         missions = []
         acceptees = [p for p in propositions if p.statut == Proposition.Statut.ACCEPTEE]
-        for i, prop in enumerate(acceptees):
-            statut = Mission.Statut.TERMINEE if i % 2 == 0 else Mission.Statut.EN_COURS
+        for prop in acceptees:
+            demande_statut = prop.demande.statut
+            date_debut = prop.date_reponse or prop.date_proposition
+            if demande_statut == Demande.Statut.TERMINEE:
+                statut = Mission.Statut.TERMINEE
+                date_fin = date_debut + timedelta(days=random.randint(1, 10), hours=random.randint(0, 8))
+            elif demande_statut == Demande.Statut.ANNULEE:
+                statut = Mission.Statut.ANNULEE
+                date_fin = date_debut + timedelta(days=random.randint(1, 5))
+            else:
+                statut = Mission.Statut.EN_COURS
+                date_fin = None
+
             mission, created = Mission.objects.get_or_create(
                 proposition=prop,
-                defaults=dict(
-                    statut=statut,
-                    date_fin=timezone.now() if statut == Mission.Statut.TERMINEE else None,
-                ),
+                defaults=dict(statut=statut, date_fin=date_fin),
             )
+            if created:
+                Mission.objects.filter(pk=mission.pk).update(date_debut=date_debut)
+                mission.date_debut = date_debut
             missions.append(mission)
         self.stdout.write(f"  {len(missions)} missions prêtes.")
         return missions
 
-    def seed_avis(self, missions):
-        commentaires = [
-            "Travail rapide et soigné, je recommande.",
-            "Très professionnel, ponctuel et efficace.",
+    COMMENTAIRES_PAR_NOTE = {
+        2: [
+            "Prestation décevante, plusieurs points à reprendre.",
+            "Beaucoup de retard et résultat moyen.",
+        ],
+        3: [
+            "Un peu de retard mais travail bien fait.",
+            "Correct sans plus, le prix était un peu élevé.",
+        ],
+        4: [
             "Bon rapport qualité-prix, satisfait du résultat.",
             "Communication claire, prestation conforme à mes attentes.",
-            "Un peu de retard mais travail bien fait.",
+            "Travail propre, je recommande.",
+        ],
+        5: [
+            "Travail rapide et soigné, je recommande vivement.",
+            "Très professionnel, ponctuel et efficace.",
             "Excellent service, à refaire sans hésiter.",
-        ]
+        ],
+    }
+
+    def seed_avis(self, missions):
         count = 0
         for mission in missions:
             if mission.statut != Mission.Statut.TERMINEE:
                 continue
-            _, created = Avis.objects.get_or_create(
+            if random.random() > 0.85:
+                continue  # quelques missions sans avis
+            note = random.choices([2, 3, 4, 5], weights=[5, 15, 40, 40])[0]
+            date_avis = (mission.date_fin or self.now) + timedelta(hours=random.randint(2, 72))
+            avis, created = Avis.objects.get_or_create(
                 mission=mission,
                 defaults=dict(
-                    note=random.choice([3, 4, 4, 5, 5]),
-                    commentaire=random.choice(commentaires),
+                    note=note,
+                    commentaire=random.choice(self.COMMENTAIRES_PAR_NOTE[note]),
                     visible=True,
                 ),
             )
             if created:
+                Avis.objects.filter(pk=avis.pk).update(date_creation=min(date_avis, self.now))
                 count += 1
         self.stdout.write(f"  {count} avis créés.")
 

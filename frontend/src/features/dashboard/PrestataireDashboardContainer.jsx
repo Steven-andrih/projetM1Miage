@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Typography } from '@mui/material'
+import { Box, Paper, Typography, useTheme } from '@mui/material'
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import StarIcon from '@mui/icons-material/Star'
@@ -12,8 +12,13 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorMessage from '../../components/ErrorMessage'
 import StatCard from '../../components/StatCard'
 import DashboardGrid from './DashboardGrid'
+import StatusDonutChart from './StatusDonutChart'
+import MonthlyBarChart from './MonthlyBarChart'
+
+const formatAriary = (value) => `${Number(value ?? 0).toLocaleString('fr-FR')} €`
 
 export default function PrestataireDashboardContainer() {
+  const theme = useTheme()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -59,6 +64,42 @@ export default function PrestataireDashboardContainer() {
           color="secondary.main"
         />
       </DashboardGrid>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '5fr 7fr' },
+          gap: 2.5,
+          mb: 2.5,
+        }}
+      >
+        <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+            Mes propositions par statut
+          </Typography>
+          <StatusDonutChart counts={data.propositions_par_statut} centerLabel="propositions" />
+        </Paper>
+
+        <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+            Missions démarrées par mois
+          </Typography>
+          <MonthlyBarChart items={data.evolution_mensuelle_missions} label="Missions" />
+        </Paper>
+      </Box>
+
+      <Paper variant="outlined" sx={{ p: 2.5, mb: 4 }}>
+        <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+          Revenus des missions terminées par mois
+        </Typography>
+        <MonthlyBarChart
+          items={data.revenus_par_mois}
+          label="Revenus"
+          formatValue={formatAriary}
+          color={theme.palette.secondary.main}
+          height={220}
+        />
+      </Paper>
 
       {data.nb_opportunites_disponibles != null && (
         <Typography color="text.secondary">

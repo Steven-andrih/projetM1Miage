@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Box, Card, CardActionArea, CardContent, Stack, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, Paper, Stack, Typography } from '@mui/material'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import WorkHistoryIcon from '@mui/icons-material/WorkHistory'
@@ -12,6 +12,8 @@ import ErrorMessage from '../../components/ErrorMessage'
 import StatCard from '../../components/StatCard'
 import StatusChip from '../../components/StatusChip'
 import DashboardGrid from './DashboardGrid'
+import StatusDonutChart from './StatusDonutChart'
+import MonthlyBarChart from './MonthlyBarChart'
 
 export default function ClientDashboardContainer() {
   const navigate = useNavigate()
@@ -45,6 +47,29 @@ export default function ClientDashboardContainer() {
           color="secondary.main"
         />
       </DashboardGrid>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '5fr 7fr' },
+          gap: 2.5,
+          mb: 4,
+        }}
+      >
+        <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+            Mes demandes par statut
+          </Typography>
+          <StatusDonutChart counts={data.demandes_par_statut} centerLabel="demandes" />
+        </Paper>
+
+        <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+            Demandes créées par mois
+          </Typography>
+          <MonthlyBarChart items={data.evolution_mensuelle} label="Demandes" />
+        </Paper>
+      </Box>
 
       <Typography variant="h6" sx={{ mb: 2 }}>
         Dernières demandes
